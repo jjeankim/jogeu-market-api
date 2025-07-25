@@ -13,9 +13,9 @@ app.use(express.json());
 
 app.use("/api/auth", authRouter);
 
-app.use("/api/brands", brandRouter);
-app.use("/api/products", ProductRouter);
-app.use("/api/carts", cartRouter);
+app.use("/api/brand", brandRouter);
+app.use("/api/product", ProductRouter);
+app.use("/api/cart", cartRouter);
 
 app.listen(4000, () => {
   console.log("Server running on port 4000");
