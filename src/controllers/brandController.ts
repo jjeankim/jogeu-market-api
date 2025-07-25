@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
-import prisma from "../lib/primsa";
+import prisma from "../lib/prisma";
 
 export const createBrand = async (req: Request, res: Response) => {
   try {
@@ -12,7 +11,7 @@ export const createBrand = async (req: Request, res: Response) => {
       });
     }
 
-    const newBrand = await prisma.brands.create({
+    const newBrand = await prisma.brand.create({
       data: {
         name,
       },
@@ -32,7 +31,7 @@ export const createBrand = async (req: Request, res: Response) => {
 
 export const getAllBrand = async (req: Request, res: Response) => {
   try {
-    const findAllBrand = await prisma.brands.findMany();
+    const findAllBrand = await prisma.brand.findMany();
 
     console.log(findAllBrand);
 
