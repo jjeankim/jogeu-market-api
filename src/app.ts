@@ -1,12 +1,13 @@
 import express, { Request, Response } from "express";
 import prisma from "./lib/prisma";
-import { productReviewRouter } from "./routes/productReviewRouter";
+import  productReviewRouter  from "./routes/productReviewRouter";
 
 import dotenv from "dotenv";
 import authRouter from "./routes/authRouter";
 import ProductRouter from "./routes/productRouter";
 import brandRouter from "./routes/brandRouter";
 import cartRouter from "./routes/cartRouter";
+import  orderRouter from "./routes/orderRouter";
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/brand", brandRouter);
 app.use("/api/product", ProductRouter);
 app.use("/api/cart", cartRouter);
+app.use("/api/orders",orderRouter)
 
 
 app.listen(4000, () => {

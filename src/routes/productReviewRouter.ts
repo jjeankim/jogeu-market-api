@@ -5,9 +5,11 @@ import {
 } from "../controllers/productReviewController";
 import { authenticateJWT } from "../middleware/auth";
 
-export const productReviewRouter = express.Router({ mergeParams: true });
+const productReviewRouter = express.Router({ mergeParams: true });
 
 productReviewRouter
   .route("/")
   .get(getProductReviews)
   .post(authenticateJWT, createProductReview);
+
+  export default productReviewRouter;
