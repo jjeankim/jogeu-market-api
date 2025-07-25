@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import prisma from "./lib/prisma";
-import { productRouter } from "./routes/productReviewRouter";
+import { productReviewRouter } from "./routes/productReviewRouter";
 
 import dotenv from "dotenv";
 import authRouter from "./routes/authRouter";
@@ -14,7 +14,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/api/products/:id/reviews",productRouter)
+app.use("/api/products/:id/reviews",productReviewRouter)
 app.use("/api/auth", authRouter);
 
 app.use("/api/brand", brandRouter);
