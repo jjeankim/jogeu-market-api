@@ -1,6 +1,6 @@
 import express from "express";
-import { getProductReviews } from "../controllers/producttReviewController";
+import { getProductReviews } from "../controllers/productReviewController";
 
 export const productRouter = express.Router({mergeParams:true});
 
-productRouter.get("/",getProductReviews);
+productRouter.route("/").get(getProductReviews);

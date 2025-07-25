@@ -38,13 +38,14 @@ export const getProductReviews: RequestHandler = async (req, res) => {
   }
 };
 
-// 상품 리뷰 작성하기
+// //상품 리뷰 작성하기
 // export const createProductReview = async (req:Request, res:Response) => {
 //   const user_id = req.user?.id;
 //   if(!user_id) {
 //     res.status(401).json({message: "유효하지 않은 사용자 입니다."})
 //     return
 //   }
+
 //   const product_id = Number(req.params.id);
 //   const { rating, review_text } = req.body;
 

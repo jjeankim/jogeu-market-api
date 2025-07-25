@@ -13,6 +13,7 @@ app.listen(4000, () => {
   console.log("Server running on port 4000");
 });
 
+// 데이터베이스와의 연결 종료
 process.on("SIGINT", async () => {
   await prisma.$disconnect();
   console.log("Prisam 연결 종료");
