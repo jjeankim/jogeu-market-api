@@ -3,19 +3,19 @@ import prisma from "../lib/prisma";
 
 // 상품 리뷰 가져오기
 export const getProductReviews: RequestHandler = async (req, res) => {
-  const product_id = Number(req.params.id);
+  const productId = Number(req.params.id);
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 10;
   const offset = (page - 1) * limit;
   try {
     const [reviews, total] = await Promise.all([
-      prisma.reviews.findMany({
-        where: { product_id },
-        orderBy: { created_at: "desc" },
+      prisma.review.findMany({
+        where: { productId },
+        orderBy: { createdAt: "desc" },
         skip: offset,
         take: limit,
       }),
-      prisma.reviews.count({ where: { product_id } }),
+      prisma.review.count({ where: { productId } }),
     ]);
 
     const totalPages = Math.ceil(total / limit);
