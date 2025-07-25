@@ -1,5 +1,6 @@
-import { Request, RequestHandler } from "express";
+import {Response,RequestHandler } from "express";
 import prisma from "../lib/prisma";
+import { UserRequest } from "../types/expressUserRequest";
 
 // 상품 리뷰 가져오기
 export const getProductReviews: RequestHandler = async (req, res) => {
@@ -38,29 +39,29 @@ export const getProductReviews: RequestHandler = async (req, res) => {
   }
 };
 
-// //상품 리뷰 작성하기
-// export const createProductReview = async (req:Request, res:Response) => {
-//   const user_id = req.user?.id;
-//   if(!user_id) {
-//     res.status(401).json({message: "유효하지 않은 사용자 입니다."})
-//     return
-//   }
+//상품 리뷰 작성하기
+export const createProductReview = async (req:UserRequest, res:Response) => {
+  const userId = req.user?.id;
+  if(!userId) {
+    res.status(401).json({message: "유효하지 않은 사용자 입니다."})
+    return
+  }
 
-//   const product_id = Number(req.params.id);
-//   const { rating, review_text } = req.body;
+  const productId = Number(req.params.id);
+  const { rating, reviewText } = req.body;
 
-//   try {
-//     const review = await prisma.reviews.create({
-//       data:{
-//         rating,
-//         review_text,
-//         product_id,
-//         user_id,
-//       }
-//     })
-//     res.status(201).json({message:"ok", data: review})
-//   } catch (error) {
-//     console.error("상품 리뷰 작성 실패", error);
-//     res.status(500).json({ message: "서버 내부 오류가 발생했습니다." });
-//   }
-// };
+  try {
+    const review = await prisma.review.create({
+      data:{
+        rating,
+        reviewText,
+        productId,
+        userId,
+      }
+    })
+    res.status(201).json({message:"ok", data: review})
+  } catch (error) {
+    console.error("상품 리뷰 작성 실패", error);
+    res.status(500).json({ message: "서버 내부 오류가 발생했습니다." });
+  }
+};
