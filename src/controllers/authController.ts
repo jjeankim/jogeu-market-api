@@ -7,15 +7,15 @@ import jwt from "jsonwebtoken";
 const SALT_ROUNDS = 10;
 
 export const signup: RequestHandler = async (req, res) => {
-  const { email, name, password, phone_number } = req.body;
+  const { email, name, password, phoneNumber } = req.body;
 
   // zod?
-  if (!email || !password || !name || !phone_number) {
+  if (!email || !password || !name || !phoneNumber) {
     return res.status(400).json({ message: "모든 필드를 입력해주세요." });
   }
 
   try {
-    const existingUser = await prisma.users.findUnique({
+    const existingUser = await prisma.User.findUnique({
       where: { email },
     });
 
@@ -25,12 +25,12 @@ export const signup: RequestHandler = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
-    const newUser = await prisma.users.create({
+    const newUser = await prisma.User.create({
       data: {
         email,
         password: hashedPassword,
         name,
-        phone_number,
+        phoneNumber,
       },
     });
 
@@ -53,7 +53,7 @@ export const login = async (req: Request, res: Response) => {
   }
 
   try {
-    const user = await prisma.users.findUnique({ where: { email } });
+    const user = await prisma.User.findUnique({ where: { email } });
 
     if (!user) {
       return res.status(401).json({

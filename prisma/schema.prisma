@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,181 +8,175 @@ datasource db {
 }
 
 // 사용자 모델: 애플리케이션의 핵심 사용자 정보를 담습니다.
-model Users {
-  id            Int            @id @default(autoincrement()) // 사용자 고유 ID
-  email         String         @unique @db.VarChar(255) // 이메일 (로그인 ID)
-  password      String         @db.VarChar(255) // 비밀번호 (해싱)
-  name          String         @db.VarChar(100) // 사용자 이름
-  phone_number  String         @db.VarChar(20) // 휴대폰 번호
-  created_at    DateTime       @default(now()) // 가입일시
-  updated_at    DateTime       @updatedAt // 정보 수정일시
-  Addresses     Addresses[]    // 사용자는 여러 배송지를 가질 수 있음
-  Carts         Carts[]        // 사용자는 여러 장바구니 항목을 가질 수 있음
-  Orders        Orders[]       // 사용자는 여러 주문을 할 수 있음
-  User_Coupons  User_Coupons[] // 사용자는 여러 쿠폰을 가질 수 있음
-  Reviews       Reviews[]      // 사용자는 여러 리뷰를 작성할 수 있음
-  Wishlists     Wishlists[]    // 사용자는 여러 찜 목록을 가질 수 있음
+model User {
+  id            Int           @id @default(autoincrement())
+  email         String        @unique @db.VarChar(255)
+  password      String        @db.VarChar(255)
+  name          String        @db.VarChar(100)
+  phoneNumber   String        @db.VarChar(20)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  addresses     Address[]
+  carts         Cart[]
+  orders        Order[]
+  userCoupons   UserCoupon[]
+  reviews       Review[]
+  wishlists     Wishlist[]
 }
 
 // 배송지 모델
-model Addresses {
-  id             Int      @id @default(autoincrement()) // 배송지 고유 ID
-  user_id        Int      // 사용자 ID
-  recipient_name String   @db.VarChar(100) // 수취인 이름
-  recipient_phone String   @db.VarChar(20) // 수취인 휴대폰 번호
-  address_line1  String   @db.VarChar(255) // 기본 주소
-  address_line2  String?  @db.VarChar(255) // 상세 주소
-  post_code      String   @db.VarChar(10) // 우편번호
-  is_default     Boolean  // 기본 배송지 여부
-  Users          Users    @relation(fields: [user_id], references: [id]) // Addresses는 Users에 속함
-  Orders         Orders[] // 이 배송지를 사용하는 주문들
+model Address {
+  id             Int      @id @default(autoincrement())
+  userId         Int
+  recipientName  String   @db.VarChar(100)
+  recipientPhone String   @db.VarChar(20)
+  addressLine1   String   @db.VarChar(255)
+  addressLine2   String?  @db.VarChar(255)
+  postCode       String   @db.VarChar(10)
+  isDefault      Boolean
+  user           User     @relation(fields: [userId], references: [id])
+  order         Order[]
 }
 
 // 브랜드 모델
-model Brands {
-  id        Int        @id @default(autoincrement()) // 브랜드 고유 ID
-  name      String     @unique @db.VarChar(100) // 브랜드 이름
-  Products  Products[] // 브랜드는 여러 제품을 가질 수 있음
+model Brand {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique @db.VarChar(100)
+  products  Product[]
 }
 
 // 제품 모델
-model Products {
-  id                  Int           @id @default(autoincrement()) // 제품 고유 ID
-  name                String        @db.VarChar(255) // 제품명
-  product_code        String        @unique @db.VarChar(50) // 제품 코드
-  brand_id            Int           // 브랜드 ID
-  price               Decimal       @db.Decimal(10, 2) // 본품 가격
-  stock_quantity      Int           // 재고 수량
-  thumbnail_image_url String        @db.VarChar(255) // 썸네일 이미지 URL
-  detail_description  String        @db.Text // 제품 상세 설명 (HTML 가능)
-  is_sample           Boolean       // 샘플 제품 여부
-  sample_price        Decimal?      @db.Decimal(10, 2) // 샘플 가격 (is_sample이 True일 경우)
-  created_at          DateTime      @default(now()) // 제품 등록일시
-  updated_at          DateTime      @updatedAt // 제품 정보 수정일시
-  Brands              Brands        @relation(fields: [brand_id], references: [id]) // Products는 Brands에 속함
-  Carts               Carts[]       // 제품은 여러 장바구니 항목에 담길 수 있음
-  Order_Items         Order_Items[] // 제품은 여러 주문 항목에 포함될 수 있음
-  Reviews             Reviews[]     // 제품은 여러 리뷰를 가질 수 있음
-  Wishlists           Wishlists[]   // 제품은 여러 찜 목록에 포함될 수 있음
+model Product {
+  id                 Int         @id @default(autoincrement())
+  name               String      @db.VarChar(255)
+  productCode        String      @unique @db.VarChar(50)
+  brandId            Int
+  price              Decimal     @db.Decimal(10, 2)
+  stockQuantity      Int
+  thumbnailImageUrl  String      @db.VarChar(255)
+  detailDescription  String      @db.Text
+  isSample           Boolean
+  samplePrice        Decimal?    @db.Decimal(10, 2)
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  brand              Brand       @relation(fields: [brandId], references: [id])
+  carts              Cart[]
+  orderItems         OrderItem[]
+  reviews            Review[]
+  wishlists          Wishlist[]
 }
 
 // 장바구니 모델
-model Carts {
-  id           Int      @id @default(autoincrement()) // 장바구니 항목 고유 ID
-  user_id      Int      // 사용자 ID
-  product_id   Int      // 제품 ID
-  quantity     Int      // 담은 수량
-  created_at   DateTime @default(now()) // 장바구니 담은 일시
-  updated_at   DateTime @updatedAt // 장바구니 수정 일시
-  Users        Users    @relation(fields: [user_id], references: [id]) // Carts는 Users에 속함
-  Products     Products @relation(fields: [product_id], references: [id]) // Carts는 Products에 속함
+model Cart {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  productId  Int
+  quantity   Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id])
+  product    Product  @relation(fields: [productId], references: [id])
 }
 
 // 주문 모델
-model Orders {
-  id                  Int           @id @default(autoincrement()) // 주문 고유 ID
-  order_number        String        @unique @db.VarChar(50) // 주문 번호 (시스템 생성)
-  user_id             Int           // 주문자 ID
-  shipping_address_id Int           // 배송지 ID
-  coupon_id           Int?          // 사용된 쿠폰 ID (NULL 허용)
-  total_amount        Decimal       @db.Decimal(10, 2) // 최종 결제 금액
-  shipping_fee        Decimal       @db.Decimal(10, 2) // 배송비
-  payment_status      String        @db.VarChar(50) // 결제 상태
-  payment_method      String        @db.VarChar(50) // 결제 수단
-  delivery_message    String?       @db.Text // 배송 메시지
-  ordered_at          DateTime      @default(now()) // 주문 일시
-  updated_at          DateTime      @updatedAt // 주문 정보 수정 일시
-  Users               Users         @relation(fields: [user_id], references: [id]) // Orders는 Users에 의해 생성됨
-  Addresses           Addresses     @relation(fields: [shipping_address_id], references: [id]) // Orders는 Addresses에 연결됨
-  Coupons             Coupons?      @relation(fields: [coupon_id], references: [id]) // Orders는 Coupons를 사용할 수 있음
-  Order_Items         Order_Items[] // 주문은 여러 주문 상품 항목을 가질 수 있음
-
-  // 1:1 관계 (Orders는 하나의 사용된 쿠폰 정보를 가질 수 있음)
-  used_coupon_info    User_Coupons? @relation(name: "OrderToUserCoupon") // User_Coupons와 양방향 관계 설정
+model Order {
+  id                 Int         @id @default(autoincrement())
+  orderNumber        String      @unique @db.VarChar(50)
+  userId             Int
+  shippingAddressId  Int
+  couponId           Int?
+  totalAmount        Decimal     @db.Decimal(10, 2)
+  shippingFee        Decimal     @db.Decimal(10, 2)
+  paymentStatus      String      @db.VarChar(50)
+  paymentMethod      String      @db.VarChar(50)
+  deliveryMessage    String?     @db.Text
+  orderedAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  user               User        @relation(fields: [userId], references: [id])
+  address            Address     @relation(fields: [shippingAddressId], references: [id])
+  coupon             Coupon?     @relation(fields: [couponId], references: [id])
+  orderItems         OrderItem[]
+  usedCouponInfo     UserCoupon? @relation(name: "OrderToUserCoupon")
 }
 
 // 쿠폰 모델
-model Coupons {
-  id                    Int            @id @default(autoincrement()) // 쿠폰 고유 ID
-  code                  String         @unique @db.VarChar(50) // 쿠폰 코드
-  name                  String         @db.VarChar(100) // 쿠폰명
-  discount_type         String         @db.VarChar(20) // 할인 유형 ('percentage' 또는 'fixed_amount')
-  discount_value        Decimal        @db.Decimal(10, 2) // 할인 값
-  min_order_amount      Decimal?       @db.Decimal(10, 2) // 최소 주문 금액 (NULL 허용)
-  valid_from            DateTime       // 유효 시작일
-  valid_until           DateTime       // 유효 만료일
-  is_active             Boolean        // 활성화 여부
-  usage_limit           Int?           // 총 사용 가능 횟수 (NULL = 무제한)
-  issued_by_sample_purchase Boolean    // 샘플 구매 발행 여부
-  Orders                Orders[]       // 쿠폰은 여러 주문에서 사용될 수 있음
-  User_Coupons          User_Coupons[] // 쿠폰은 여러 사용자 쿠폰 항목에 포함될 수 있음
+model Coupon {
+  id                   Int          @id @default(autoincrement())
+  code                 String       @unique @db.VarChar(50)
+  name                 String       @db.VarChar(100)
+  discountType         String       @db.VarChar(20)
+  discountValue        Decimal      @db.Decimal(10, 2)
+  minOrderAmount       Decimal?     @db.Decimal(10, 2)
+  validFrom            DateTime
+  validUntil           DateTime
+  isActive             Boolean
+  usageLimit           Int?
+  issuedBySamplePurchase Boolean
+  orders               Order[]
+  userCoupons          UserCoupon[]
 }
 
 // 주문 상품 항목 모델
-model Order_Items {
-  id                  Int       @id @default(autoincrement()) // 주문 상품 항목 고유 ID
-  order_id            Int       // 주문 ID
-  product_id          Int       // 제품 ID
-  quantity            Int       // 구매 수량
-  price_at_purchase   Decimal @db.Decimal(10, 2) // 구매 당시 제품 가격
-  Orders              Orders    @relation(fields: [order_id], references: [id]) // Order_Items는 Orders에 속함
-  Products            Products  @relation(fields: [product_id], references: [id]) // Order_Items는 Products에 속함
+model OrderItem {
+  id                Int      @id @default(autoincrement())
+  orderId           Int
+  productId         Int
+  quantity          Int
+  priceAtPurchase   Decimal  @db.Decimal(10, 2)
+  order             Order    @relation(fields: [orderId], references: [id])
+  product           Product  @relation(fields: [productId], references: [id])
 }
 
-// 사용자별 쿠폰 모델 (사용자가 보유한 쿠폰 및 사용 이력)
-model User_Coupons {
-  id          Int       @id @default(autoincrement())
-  user_id     Int
-  coupon_id   Int
-  is_used     Boolean
-  used_at     DateTime?
-  order_id    Int?      @unique // 이 필드는 Orders 테이블의 기본 키를 참조하며 고유해야 합니다.
+// 사용자별 쿠폰 모델
+model UserCoupon {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  couponId    Int
+  isUsed      Boolean
+  usedAt      DateTime?
+  orderId     Int?     @unique
 
-  Users       Users     @relation(fields: [user_id], references: [id])
-  Coupons     Coupons   @relation(fields: [coupon_id], references: [id])
+  user        User     @relation(fields: [userId], references: [id])
+  coupon      Coupon   @relation(fields: [couponId], references: [id])
+  usedByOrder Order?   @relation(name: "OrderToUserCoupon", fields: [orderId], references: [id])
 
-  // N:1 관계 (User_Coupons는 하나의 Orders에 의해 사용될 수 있음)
-  used_by_order Orders?   @relation(name: "OrderToUserCoupon", fields: [order_id], references: [id]) // Orders와 양방향 관계 설정 및 fields, references 명시
-
-  @@unique([user_id, coupon_id]) // 사용자 + 쿠폰 조합은 고유해야 합니다.
+  @@unique([userId, couponId])
 }
 
 // 리뷰 모델
-model Reviews {
-  id          Int         @id @default(autoincrement()) // 리뷰 고유 ID
-  product_id  Int         // 제품 ID
-  user_id     Int         // 사용자 ID
-  rating      Int         // 별점 (1-5)
-  review_text String      @db.Text // 리뷰 내용
-  image_url   String?     @db.VarChar(255) // 사진 URL (NULL 허용)
-  likes_count Int         @default(0) // 좋아요 수
-  created_at  DateTime    @default(now()) // 리뷰 작성일시
-  updated_at  DateTime    @updatedAt // 리뷰 수정일시
-  Products    Products    @relation(fields: [product_id], references: [id]) // Reviews는 Products에 속함
-  Users       Users       @relation(fields: [user_id], references: [id]) // Reviews는 Users에 의해 작성됨
-  Review_Tags Review_Tags[] // 리뷰는 여러 태그를 가질 수 있음
+model Review {
+  id          Int         @id @default(autoincrement())
+  productId   Int
+  userId      Int
+  rating      Int
+  reviewText  String      @db.Text
+  imageUrl    String?     @db.VarChar(255)
+  likesCount  Int         @default(0)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  product     Product     @relation(fields: [productId], references: [id])
+  user        User        @relation(fields: [userId], references: [id])
+  reviewTags  ReviewTag[]
 }
 
 // 리뷰 태그 모델
-model Review_Tags {
-  id          Int     @id @default(autoincrement()) // 태그 고유 ID
-  review_id   Int     // 리뷰 ID
-  tag_keyword String  @db.VarChar(100) // 태그 이름 (키워드 저장)
-  Reviews     Reviews @relation(fields: [review_id], references: [id]) // Review_Tags는 Reviews에 속함
+model ReviewTag {
+  id         Int     @id @default(autoincrement())
+  reviewId   Int
+  tagKeyword String  @db.VarChar(100)
+  review     Review  @relation(fields: [reviewId], references: [id])
 
-  @@unique([review_id, tag_keyword]) // 한 리뷰에 동일한 태그 키워드가 중복되지 않도록
+  @@unique([reviewId, tagKeyword])
 }
 
 // 찜 목록 모델
-model Wishlists {
-  id         Int      @id @default(autoincrement()) // 찜 목록 항목 고유 ID
-  user_id    Int      // 사용자 ID
-  product_id Int      // 제품 ID
-  created_at DateTime @default(now()) // 찜한 일시
-  Users      Users    @relation(fields: [user_id], references: [id]) // Wishlists는 Users에 속함
-  Products   Products @relation(fields: [product_id], references: [id]) // Wishlists는 Products에 속함
+model Wishlist {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  productId  Int
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+  product    Product  @relation(fields: [productId], references: [id])
 
-  @@unique([user_id, product_id]) // 한 사용자가 한 제품을 한 번만 찜할 수 있도록
+  @@unique([userId, productId])
 }
-
-

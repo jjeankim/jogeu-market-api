@@ -1,19 +1,18 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
-import prisma from "../lib/primsa";
+import prisma from "../lib/prisma";
 
 export const createProduct = async (req: Request, res: Response) => {
   try {
     const {
       name,
-      product_code,
-      brand_id,
+      productCode,
+      brandId,
       price,
-      stock_quantity,
-      thumbnail_image_url,
-      detail_description,
-      is_sample,
-      sample_price,
+      stockQuantity,
+      thumbnailImageUrl,
+      detailDescription,
+      isSample,
+      samplePrice,
     } = req.body;
 
     if (!name || typeof price !== "number") {
@@ -23,17 +22,17 @@ export const createProduct = async (req: Request, res: Response) => {
       });
     }
 
-    const newProduct = await prisma.products.create({
+    const newProduct = await prisma.product.create({
       data: {
         name,
-        product_code,
-        brand_id,
+        productCode,
+        brandId,
         price,
-        stock_quantity,
-        thumbnail_image_url,
-        detail_description,
-        is_sample,
-        sample_price,
+        stockQuantity,
+        thumbnailImageUrl,
+        detailDescription,
+        isSample,
+        samplePrice,
       },
     });
 
@@ -51,7 +50,7 @@ export const createProduct = async (req: Request, res: Response) => {
 
 export const getAllProduct = async (req: Request, res: Response) => {
   try {
-    const findAllProduct = await prisma.products.findMany();
+    const findAllProduct = await prisma.product.findMany();
 
     console.log(findAllProduct);
 
@@ -73,7 +72,7 @@ export const getOneProduct = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "상품 ID는 숫자여야 합니다." });
     }
 
-    const findOneProduct = await prisma.products.findUnique({
+    const findOneProduct = await prisma.product.findUnique({
       where: { id: id },
     });
 
