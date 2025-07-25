@@ -15,7 +15,7 @@ export const signup: RequestHandler = async (req, res) => {
   }
 
   try {
-    const existingUser = await prisma.User.findUnique({
+    const existingUser = await prisma.user.findUnique({
       where: { email },
     });
 
@@ -25,7 +25,7 @@ export const signup: RequestHandler = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
-    const newUser = await prisma.User.create({
+    const newUser = await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
@@ -53,7 +53,7 @@ export const login = async (req: Request, res: Response) => {
   }
 
   try {
-    const user = await prisma.User.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) {
       return res.status(401).json({

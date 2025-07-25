@@ -17,9 +17,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/products/:id/reviews",productRouter)
 app.use("/api/auth", authRouter);
 
-app.use("/api/brands", brandRouter);
-app.use("/api/products", ProductRouter);
-app.use("/api/carts", cartRouter);
+app.use("/api/brand", brandRouter);
+app.use("/api/product", ProductRouter);
+app.use("/api/cart", cartRouter);
 
 
 app.listen(4000, () => {
