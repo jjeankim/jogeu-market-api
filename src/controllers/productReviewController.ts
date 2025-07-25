@@ -43,8 +43,7 @@ export const getProductReviews: RequestHandler = async (req, res) => {
 export const createProductReview = async (req:UserRequest, res:Response) => {
   const userId = req.user?.id;
   if(!userId) {
-    res.status(401).json({message: "유효하지 않은 사용자 입니다."})
-    return
+    return res.status(401).json({message: "유효하지 않은 사용자 입니다."})
   }
 
   const productId = Number(req.params.id);
@@ -59,9 +58,9 @@ export const createProductReview = async (req:UserRequest, res:Response) => {
         userId,
       }
     })
-    res.status(201).json({message:"ok", data: review})
+    return res.status(201).json({message:"ok", data: review})
   } catch (error) {
     console.error("상품 리뷰 작성 실패", error);
-    res.status(500).json({ message: "서버 내부 오류가 발생했습니다." });
+    return res.status(500).json({ message: "서버 내부 오류가 발생했습니다." });
   }
 };
