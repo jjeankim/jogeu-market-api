@@ -37,7 +37,7 @@ export const createOrder = async (req: UserRequest, res: Response) => {
         shippingAddressId,
 
         paymentMethod,
-        paymentStatus: "걸제대기",
+        paymentStatus: "결제대기",
         deliveryMessage,
         totalAmount,
         shippingFee,
@@ -62,6 +62,37 @@ export const createOrder = async (req: UserRequest, res: Response) => {
   } catch (error) {
     console.error("주문 생성 실패,", error);
     return res.status(500).json({ message: "서버 오류 발생" });
+
+  }
+};
+
+// 주문 목록 전체 조회
+export const getAllOrders = async (req: UserRequest, res: Response) => {
+  const userId = req.user?.id;
+  if (!userId) {
+    return res.status(401).json({ message: "유효하지 않은 사용자 입니다." });
+  }
+  try {
+    const orders = await prisma.order.findMany({
+      include: {
+        user: true,
+        address: true,
+        coupon: true,
+        orderItems: true,
+      },
+    });
+    if (!orders) {
+      return res.status(404).json({ message: "주문 목록을 찾을 수 없습니다." });
+    }
+    console.log(orders);
+    res
+      .status(200)
+      .json({ message: "주문 목록 조회에 성공했습니다.", data: orders });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "서버 오류로 주문 목록 조회에 실패했습니다." });
+
   }
 };
 
@@ -85,5 +116,44 @@ export const getOrder = async (req: UserRequest, res: Response) => {
       .json({ message: "주문 상세 조회 성공", data: order });
   } catch (error) {
     console.error("주문 상세 조회 실패,", error);
+  }
+};
+
+// 결제 상태 변경
+export const updateOrderStatus = async (req: UserRequest, res: Response) => {
+  const userId = req.user?.id;
+  if (!userId) {
+    return res.status(401).json({ message: "유효하지 않은 사용자 입니다." });
+  }
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) {
+    return res.status(400).json({ error: "유효한 주문 ID가 필요합니다." });
+  }
+  const { paymentStatus } = req.body;
+
+  const validStatus = ["결제대기", "결제완료", "결제실패"];
+  if (!paymentStatus || !validStatus.includes(paymentStatus)) {
+    return res
+      .status(400)
+      .json({ error: "유효한 paymentStatus값이 필요합니다." });
+  }
+
+  try {
+    const updated = await prisma.order.update({
+      where: { id },
+      data: { paymentStatus },
+    });
+    res.status(200).json({
+      message: "주문상태가 성공적으로 변경되었습니다.",
+      data: updated,
+    });
+  } catch (error) {
+    if (typeof error === "object" && error !== null && "code" in error) {
+      if ((error as { code: string }).code === "P2025") {
+        return res.status(404).json({ error: "해당 주문을 찾을 수 없습니다." });
+      }
+    }
+    console.error("주문 상태 변경 오류: ", error);
+    return res.status(500).json({ error: "주문상태 변경에 실패했습니다." });
   }
 };
