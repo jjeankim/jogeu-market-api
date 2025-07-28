@@ -5,6 +5,7 @@ import { productRouter } from "./routes/productReviewRouter";
 import dotenv from "dotenv";
 import authRouter from "./routes/authRouter";
 import ProductRouter from "./routes/productRouter";
+import userRouter from "./routes/userRouter";
 import brandRouter from "./routes/brandRouter";
 import cartRouter from "./routes/cartRouter";
 
@@ -14,13 +15,13 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/products/:id/reviews",productRouter)
+app.use("/products/:id/reviews", productRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/users", userRouter);
 
 app.use("/api/brand", brandRouter);
 app.use("/api/product", ProductRouter);
 app.use("/api/cart", cartRouter);
-
 
 app.listen(4000, () => {
   console.log("Server running on port 4000");
