@@ -1,6 +1,7 @@
 import express from "express";
 import {
   createProductReview,
+  deleteProductReview,
   getProductReviews,
   updateProductReview,
 } from "../controllers/productReviewController";
@@ -16,6 +17,6 @@ productReviewRouter
 productReviewRouter
   .route("/:reviewId")
   .put(authenticateJWT, updateProductReview)
-  .delete(authenticateJWT);
+  .delete(authenticateJWT,deleteProductReview);
 
 export default productReviewRouter;
