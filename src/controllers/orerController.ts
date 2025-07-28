@@ -62,6 +62,7 @@ export const createOrder = async (req: UserRequest, res: Response) => {
   } catch (error) {
     console.error("주문 생성 실패,", error);
     return res.status(500).json({ message: "서버 오류 발생" });
+
   }
 };
 
@@ -91,6 +92,7 @@ export const getAllOrders = async (req: UserRequest, res: Response) => {
     res
       .status(500)
       .json({ message: "서버 오류로 주문 목록 조회에 실패했습니다." });
+
   }
 };
 

@@ -6,8 +6,8 @@ import {
 } from "../controllers/productController";
 
 const ProductRouter = Router();
-ProductRouter.post("/", createProduct);
-ProductRouter.get("/", getAllProduct);
+
+ProductRouter.route("/").post(createProduct).get(getAllProduct);
 ProductRouter.get("/:id", getOneProduct);
 
 export default ProductRouter;
