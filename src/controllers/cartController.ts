@@ -1,9 +1,14 @@
 import { Request, Response } from "express";
 import prisma from "../lib/prisma";
+import { UserRequest } from "../types/expressUserRequest";
 
-export const createCart = async (req: Request, res: Response) => {
+export const createCart = async (req: UserRequest, res: Response) => {
+  const userId = req.user?.id;
+  if(!userId) {
+    return res.status(401).json({message:"유효하지 않은 사용자입니다."})
+  }
   try {
-    const { userId, productId, quantity } = req.body;
+    const { productId, quantity } = req.body;
 
     const newCartItem = await prisma.cart.create({
       data: {

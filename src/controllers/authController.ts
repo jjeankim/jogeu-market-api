@@ -2,6 +2,7 @@ import { Request, RequestHandler, Response } from "express";
 import prisma from "../lib/prisma";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { UserRequest } from "../types/expressUserRequest";
 
 // salt 관련설정 env 해야함 이건 걍 갯수관련인듯
 const SALT_ROUNDS = 10;
@@ -80,6 +81,6 @@ export const login = async (req: Request, res: Response) => {
 
     return res.json({ token });
   } catch (error) {
-    return res.status(500).json({ message: "서버 오류" });
+    return res.status(500).json({ message: "서버 오류",error });
   }
 };
