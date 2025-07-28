@@ -9,7 +9,6 @@ import {
 
 const cartRouter = Router();
 
-
 cartRouter
   .post("/", authenticateJWT, createCart)
   .get("/", authenticateJWT, getCart)

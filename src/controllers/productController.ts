@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, RequestHandler, Response } from "express";
 import prisma from "../lib/prisma";
 
 export const createProduct = async (req: Request, res: Response) => {
@@ -91,3 +91,5 @@ export const getOneProduct = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "서버 오류가 발생했습니다." });
   }
 };
+
+

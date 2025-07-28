@@ -10,7 +10,9 @@ import userRouter from "./routes/userRouter";
 import brandRouter from "./routes/brandRouter";
 import cartRouter from "./routes/cartRouter";
 import orderRouter from "./routes/orderRouter";
+import sampleRouter from "./routes/sampleRouter";
 import CouponRouter from "./routes/couponRouter";
+
 
 dotenv.config();
 
@@ -28,6 +30,8 @@ app.use("/api/product", ProductRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/coupon", CouponRouter);
 app.use("/api/orders", orderRouter);
+app.use("/api/samples", sampleRouter);
+
 
 app.listen(4000, () => {
   console.log("Server running on port 4000");
