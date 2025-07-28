@@ -22,7 +22,7 @@ const generateToken = (user: User) => {
       expiresIn: "7d",
     }
   );
-  return {accessToken, refreshToken}
+  return { accessToken, refreshToken };
 };
 
 export default generateToken;
