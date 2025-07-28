@@ -6,6 +6,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import authRouter from "./routes/authRouter";
 import ProductRouter from "./routes/productRouter";
+import userRouter from "./routes/userRouter";
 import brandRouter from "./routes/brandRouter";
 import cartRouter from "./routes/cartRouter";
 import orderRouter from "./routes/orderRouter";
@@ -19,11 +20,14 @@ app.use(cors({ origin: "http://localhost:3000" }));
 
 app.use("/api/products/:id/reviews", productReviewRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/users", userRouter);
 
 app.use("/api/brand", brandRouter);
 app.use("/api/product", ProductRouter);
 app.use("/api/cart", cartRouter);
+
 app.use("/api/orders", orderRouter);
+
 
 app.listen(4000, () => {
   console.log("Server running on port 4000");
