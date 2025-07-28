@@ -116,3 +116,42 @@ export const getOrder = async (req: UserRequest, res: Response) => {
     console.error("주문 상세 조회 실패,", error);
   }
 };
+
+// 결제 상태 변경
+export const updateOrderStatus = async (req: UserRequest, res: Response) => {
+  const userId = req.user?.id;
+  if (!userId) {
+    return res.status(401).json({ message: "유효하지 않은 사용자 입니다." });
+  }
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) {
+    return res.status(400).json({ error: "유효한 주문 ID가 필요합니다." });
+  }
+  const { paymentStatus } = req.body;
+
+  const validStatus = ["결제대기", "결제완료", "결제실패"];
+  if (!paymentStatus || !validStatus.includes(paymentStatus)) {
+    return res
+      .status(400)
+      .json({ error: "유효한 paymentStatus값이 필요합니다." });
+  }
+
+  try {
+    const updated = await prisma.order.update({
+      where: { id },
+      data: { paymentStatus },
+    });
+    res.status(200).json({
+      message: "주문상태가 성공적으로 변경되었습니다.",
+      data: updated,
+    });
+  } catch (error) {
+    if (typeof error === "object" && error !== null && "code" in error) {
+      if ((error as { code: string }).code === "P2025") {
+        return res.status(404).json({ error: "해당 주문을 찾을 수 없습니다." });
+      }
+    }
+    console.error("주문 상태 변경 오류: ", error);
+    return res.status(500).json({ error: "주문상태 변경에 실패했습니다." });
+  }
+};
