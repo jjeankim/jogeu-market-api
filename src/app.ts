@@ -2,6 +2,8 @@ import express, { Request, Response } from "express";
 import prisma from "./lib/prisma";
 import productReviewRouter from "./routes/productReviewRouter";
 import cors from "cors";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./config/swagger";
 
 import dotenv from "dotenv";
 import authRouter from "./routes/authRouter";
@@ -15,14 +17,16 @@ import wishlistRouter from "./routes/wishlistRouter";
 import sampleRouter from "./routes/sampleRouter";
 import CouponRouter from "./routes/couponRouter";
 
-
-
 dotenv.config();
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: "http://localhost:3000" }));
+
+// Swagger UI 설정
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 app.use("/api/products/:id/reviews", productReviewRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
