@@ -3,6 +3,7 @@ import prisma from "../lib/prisma";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { UserRequest } from "../types/expressUserRequest";
+import generateToken from "../utils/token";
 
 // salt 관련설정 env 해야함 이건 걍 갯수관련인듯
 const SALT_ROUNDS = 10;
@@ -71,16 +72,24 @@ export const login = async (req: Request, res: Response) => {
         .json({ message: "이메일 또는 비밀 번호가 틀렸습니다." });
     }
 
-    const token = jwt.sign(
-      { id: user.id, email: user.email },
-      process.env.JWT_SECRET as string,
-      {
-        expiresIn: "3d",
-      }
-    );
+    // const token = jwt.sign(
+    //   { id: user.id, email: user.email },
+    //   process.env.JWT_SECRET as string,
+    //   {
+    //     expiresIn: "3d",
+    //   }
+    // );
+    const { accessToken, refreshToken } = generateToken(user);
+    
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", //로컬에서는 false
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
-    return res.json({ token });
+    return res.json({ accessToken });
   } catch (error) {
-    return res.status(500).json({ message: "서버 오류",error });
+    return res.status(500).json({ message: "서버 오류", error });
   }
 };
