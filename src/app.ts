@@ -10,6 +10,7 @@ import userRouter from "./routes/userRouter";
 import brandRouter from "./routes/brandRouter";
 import cartRouter from "./routes/cartRouter";
 import orderRouter from "./routes/orderRouter";
+import wishlistRouter from "./routes/wishlistRouter";
 
 dotenv.config();
 
@@ -25,9 +26,8 @@ app.use("/api/users", userRouter);
 app.use("/api/brand", brandRouter);
 app.use("/api/product", ProductRouter);
 app.use("/api/cart", cartRouter);
-
+app.use("/api/wishlist", wishlistRouter);
 app.use("/api/orders", orderRouter);
-
 
 app.listen(4000, () => {
   console.log("Server running on port 4000");
