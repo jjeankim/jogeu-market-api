@@ -72,9 +72,8 @@ export const updateProductReview = async (req: UserRequest, res: Response) => {
     return res.status(401).json({ message: "유효하지 않은 사용자 입니다." });
   }
 
-  const productId = Number(req.params.productId);
+  const productId = Number(req.params.id);
   const reviewId = Number(req.params.reviewId);
-  const { rating, reviewText } = req.body;
 
   try {
     // 리뷰가 존재하는지, 해당 상품의 리뷰인지, 요청한 사용자의 리뷰인지 확인
@@ -96,11 +95,12 @@ export const updateProductReview = async (req: UserRequest, res: Response) => {
         // 유효성 검사 해야함
         ...req.body,
       },
-
-    })
-    ;
-    return res.status(200).json({message:"리뷰가 성공적으로 수정되었습니다."})
+    });
+    return res
+      .status(200)
+      .json({ message: "리뷰가 성공적으로 수정되었습니다.",review:updateReview });
   } catch (error) {
-    console.error("");
+    console.error("리뷰 수정 중 오류 발생:", error);
+    return res.status(500).json({ message: "서버 오류 발생 " });
   }
 };
