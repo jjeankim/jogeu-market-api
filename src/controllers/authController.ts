@@ -4,8 +4,7 @@ import bcrypt from "bcryptjs";
 import generateToken from "../utils/token";
 import { loginSchema, signupSchema } from "../validator/authSchema";
 
-// salt 관련설정 env 해야함 이건 걍 갯수관련인듯
-const SALT_ROUNDS = 10;
+const SALT_ROUNDS = Number(process.env.SALT_ROUNDS || "10");
 
 export const signup: RequestHandler = async (req, res) => {
   try {
