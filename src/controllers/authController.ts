@@ -1,21 +1,16 @@
 import { Request, RequestHandler, Response } from "express";
 import prisma from "../lib/prisma";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import { UserRequest } from "../types/expressUserRequest";
+import generateToken from "../utils/token";
+import { loginSchema, signupSchema } from "../validator/authSchema";
 
 // salt 관련설정 env 해야함 이건 걍 갯수관련인듯
 const SALT_ROUNDS = 10;
 
 export const signup: RequestHandler = async (req, res) => {
-  const { email, name, password, phoneNumber } = req.body;
-
-  // zod?
-  if (!email || !password || !name || !phoneNumber) {
-    return res.status(400).json({ message: "모든 필드를 입력해주세요." });
-  }
-
   try {
+    const { email, name, password } = signupSchema.parse(req.body);
+
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
@@ -31,7 +26,6 @@ export const signup: RequestHandler = async (req, res) => {
         email,
         password: hashedPassword,
         name,
-        phoneNumber,
       },
     });
 
@@ -44,16 +38,10 @@ export const signup: RequestHandler = async (req, res) => {
   }
 };
 
-export const login = async (req: Request, res: Response) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res
-      .status(400)
-      .json({ message: "이메일과 비밀번호를 입력해주세요." });
-  }
-
+export const login: RequestHandler = async (req, res) => {
   try {
+    const { email, password } = loginSchema.parse(req.body);
+
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) {
@@ -71,16 +59,17 @@ export const login = async (req: Request, res: Response) => {
         .json({ message: "이메일 또는 비밀 번호가 틀렸습니다." });
     }
 
-    const token = jwt.sign(
-      { id: user.id, email: user.email },
-      process.env.JWT_SECRET as string,
-      {
-        expiresIn: "3d",
-      }
-    );
+    const { accessToken, refreshToken } = generateToken(user);
 
-    return res.json({ token });
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", //개발중일때는 false
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.json({ accessToken });
   } catch (error) {
-    return res.status(500).json({ message: "서버 오류",error });
+    return res.status(500).json({ message: "서버 오류", error });
   }
 };
