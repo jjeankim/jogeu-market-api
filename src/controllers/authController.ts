@@ -3,7 +3,6 @@ import prisma from "../lib/prisma";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-// salt 관련설정 env 해야함 이건 걍 갯수관련인듯
 const SALT_ROUNDS = 10;
 
 export const signup: RequestHandler = async (req, res) => {
