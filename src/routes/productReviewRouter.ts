@@ -4,6 +4,7 @@ import {
   deleteProductReview,
   getProductReviews,
   likeProductReview,
+  unlikeProductReview,
   updateProductReview,
 } from "../controllers/productReviewController";
 import { authenticateJWT } from "../middleware/auth";
@@ -22,6 +23,7 @@ productReviewRouter
 
 productReviewRouter
   .route("/:reviewId/like")
-  .post(authenticateJWT, likeProductReview);
+  .post(authenticateJWT, likeProductReview)
+  .delete(authenticateJWT, unlikeProductReview);
 
 export default productReviewRouter;
