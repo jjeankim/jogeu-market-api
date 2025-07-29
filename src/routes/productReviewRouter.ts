@@ -1,6 +1,7 @@
 import express from "express";
 import {
   createProductReview,
+  createReviewTag,
   deleteProductReview,
   getProductReviews,
   getReviewTags,
@@ -30,6 +31,6 @@ productReviewRouter
 productReviewRouter
   .route("/:reviewId/tags")
   .get(getReviewTags)
-  .post(authenticateJWT);
+  .post(authenticateJWT,createReviewTag);
 
 export default productReviewRouter;
