@@ -122,7 +122,39 @@ export const deleteProductReview = async (req: UserRequest, res: Response) => {
     });
     return res.sendStatus(204);
   } catch (error) {
-    console.error("리뷰 삭제 중 오류 발생: ", error);
-    return res.status(500).json({ message: "서버 오류 발생" });
+    console.error("리뷰 삭제 중 에러 발생: ", error);
+    return res.status(500).json({ message: "서버 에러 발생" });
+  }
+};
+
+// 상품 리뷰 좋아요
+export const likeProductReview = async (req: UserRequest, res: Response) => {
+  const userId = req.user?.id;
+  if (!userId) {
+    return res.status(401).json({ message: "유효하지 않은 사용자 입니다." });
+  }
+
+  const productId = Number(req.params.id);
+  const reviewId = Number(req.params.reviewId);
+
+  try {
+    const review = await prisma.review.findUnique({
+      where: { id: reviewId, productId },
+      select: { likesCount: true },
+    });
+    if (review && review.likesCount >= 0) {
+      await prisma.review.update({
+        where: { id: reviewId },
+        data: {
+          likesCount: {
+            increment: 1,
+          },
+        },
+      });
+    }
+    return res.status(201).json({message: "리뷰 좋아요 성공"})
+  } catch (error) {
+    console.error("리뷰 좋아요 중 에러 발생");
+    return res.status(500).json({message:"서버 에러 발생"})
   }
 };
