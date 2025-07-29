@@ -1,6 +1,7 @@
 import { Response, RequestHandler } from "express";
 import prisma from "../lib/prisma";
 import { UserRequest } from "../types/expressUserRequest";
+import { Prisma } from "@prisma/client";
 
 // 상품 리뷰 가져오기
 export const getProductReviews: RequestHandler = async (req, res) => {
@@ -122,7 +123,152 @@ export const deleteProductReview = async (req: UserRequest, res: Response) => {
     });
     return res.sendStatus(204);
   } catch (error) {
-    console.error("리뷰 삭제 중 오류 발생: ", error);
-    return res.status(500).json({ message: "서버 오류 발생" });
+    console.error("리뷰 삭제 중 에러 발생: ", error);
+    return res.status(500).json({ message: "서버 에러 발생" });
+  }
+};
+
+// 상품 리뷰 좋아요
+export const likeProductReview = async (req: UserRequest, res: Response) => {
+  const userId = req.user?.id;
+  if (!userId) {
+    return res.status(401).json({ message: "유효하지 않은 사용자 입니다." });
+  }
+
+  const productId = Number(req.params.id);
+  const reviewId = Number(req.params.reviewId);
+
+  try {
+    const review = await prisma.review.findUnique({
+      where: { id: reviewId, productId },
+      select: { likesCount: true }, // likesCount 필드만 가져와 불필요한 데이터 I/O 줄임
+    });
+    if (review && review.likesCount >= 0) {
+      await prisma.review.update({
+        where: { id: reviewId, productId },
+        data: {
+          likesCount: {
+            increment: 1,
+          },
+        },
+      });
+    }
+    return res.status(201).json({ message: "리뷰 좋아요 성공" });
+  } catch (error) {
+    console.error("리뷰 좋아요 중 에러 발생: ", error);
+    return res.status(500).json({ message: "서버 에러 발생" });
+  }
+};
+
+// 상품 리뷰 좋아요 취소
+export const unlikeProductReview = async (req: UserRequest, res: Response) => {
+  const userId = req.user?.id;
+  if (!userId) {
+    return res.status(401).json({ message: "유효하지 않은 사용자 입니다." });
+  }
+
+  const productId = Number(req.params.id);
+  const reviewId = Number(req.params.reviewId);
+
+  try {
+    const review = await prisma.review.findUnique({
+      where: { id: reviewId, productId },
+      select: { likesCount: true },
+    });
+    if (review && review.likesCount > 0) {
+      await prisma.review.update({
+        where: { id: reviewId },
+        data: {
+          likesCount: { decrement: 1 },
+        },
+      });
+    }
+    res.sendStatus(204);
+  } catch (error) {
+    console.error("리뷰 좋아요 취소 중 에러 발생: ", error);
+    return res.status(500).json({ message: "서버 에러 발생" });
+  }
+};
+
+// 상품 태그 목록 가져오기
+export const getReviewTags: RequestHandler = async (req, res) => {
+  const productId = Number(req.params.id);
+  const reviewId = Number(req.params.reviewId);
+
+  try {
+    const reviewTagList = await prisma.review.findUnique({
+      where: { id: reviewId, productId },
+      select: {
+        reviewTags: {
+          select: {
+            tagKeyword: true,
+          },
+        },
+      },
+    });
+
+    if (!reviewTagList) {
+      return res.status(404).json({ message: "해당 리뷰를 찾을 수 없습니다." });
+    }
+    res
+      .status(200)
+      .json({ message: "리뷰 태그 목록 조회 성공: ", data: reviewTagList });
+  } catch (error) {
+    console.error("리뷰 태그 목록 조회 중 에러 발생", error);
+    res.status(500).json({ message: "서버 에러 발생" });
+  }
+};
+
+// 상품 태그 추가하기
+export const createReviewTag = async (req: UserRequest, res: Response) => {
+  const userId = req.user?.id;
+  if (!userId) {
+    return res.status(401).json({ message: "유효하지 않은 사용자 입니다." });
+  }
+
+  const productId = Number(req.params.id);
+  const reviewId = Number(req.params.reviewId);
+  const tagKeyword = req.body.tagKeyword?.trim(); // 공백제거
+  const validTag = /^[가-힣a-zA-Z0-9]+$/;
+
+  if (!tagKeyword || !validTag.test(tagKeyword)) {
+    return res.status(400).json({
+      message: "태그는 공백 없이 한글/영문/숫자만 사용할 수 있습니다.",
+    });
+  }
+
+  try {
+    // 해당 리뷰가 사용자의 것이고 해당 상품에 속해 있는지 확인
+    const review = await prisma.review.findFirst({
+      where: { id: reviewId, productId, userId },
+    });
+
+    if (!review) {
+      return res
+        .status(404)
+        .json({ message: "리뷰를 찾을 수 없거나 권한이 없습니다." });
+    }
+
+    // 태그 생성
+    const newTag = await prisma.reviewTag.create({
+      data: {
+        reviewId,
+        tagKeyword,
+      },
+    });
+    res.status(201).json({
+      message: "리뷰 태그 추가 성공: ",
+      data: newTag,
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2002") {
+        return res.status(409).json({
+          message: "이미 동일한 태그가 추가되어 있습니다.",
+        });
+      }
+    }
+    console.error("상품 태그 추가 중 에러 발생: ", error);
+    res.status(500).json({ message: "서버 에러 발생" });
   }
 };
