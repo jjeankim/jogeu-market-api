@@ -1,7 +1,18 @@
 import { Router } from "express";
-import { createCart } from "../controllers/cartController";
+import { authenticateJWT } from "../middleware/auth";
+import {
+  createCart,
+  getCart,
+  patchCart,
+  deleteCart,
+} from "../controllers/cartController";
 
 const cartRouter = Router();
-cartRouter.post("/", createCart);
+
+cartRouter
+  .post("/", authenticateJWT, createCart)
+  .get("/", authenticateJWT, getCart)
+  .patch("/:id", authenticateJWT, patchCart)
+  .delete("/:id", authenticateJWT, deleteCart);
 
 export default cartRouter;

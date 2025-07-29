@@ -1,6 +1,22 @@
 import express from "express";
-import { getProductReviews } from "../controllers/productReviewController";
+import {
+  createProductReview,
+  deleteProductReview,
+  getProductReviews,
+  updateProductReview,
+} from "../controllers/productReviewController";
+import { authenticateJWT } from "../middleware/auth";
 
-export const productRouter = express.Router({mergeParams:true});
+const productReviewRouter = express.Router({ mergeParams: true });
 
-productRouter.route("/").get(getProductReviews);
+productReviewRouter
+  .route("/")
+  .get(getProductReviews)
+  .post(authenticateJWT, createProductReview);
+
+productReviewRouter
+  .route("/:reviewId")
+  .put(authenticateJWT, updateProductReview)
+  .delete(authenticateJWT,deleteProductReview);
+
+export default productReviewRouter;
