@@ -3,6 +3,8 @@ import prisma from "../lib/prisma";
 import bcrypt from "bcryptjs";
 import generateToken from "../utils/token";
 import { loginSchema, signupSchema } from "../validator/authSchema";
+import { AUTH_ERROR, COMMON_ERROR } from "../constants/errorMessage";
+import { AUTH_SUCCESS } from "../constants/successMessage";
 
 const SALT_ROUNDS = Number(process.env.SALT_ROUNDS || "10");
 
@@ -15,7 +17,7 @@ export const signup: RequestHandler = async (req, res) => {
     });
 
     if (existingUser) {
-      return res.status(409).json({ message: "이미 존재하는 메일입니다." });
+      return res.status(409).json({ message: AUTH_ERROR.EMAIL_ALREADY_EXISTS });
     }
 
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
@@ -30,10 +32,10 @@ export const signup: RequestHandler = async (req, res) => {
 
     return res
       .status(201)
-      .json({ message: "회원가입 완료", userId: newUser.id });
+      .json({ message: AUTH_SUCCESS.SIGNUP, userId: newUser.id });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "서버 오류" });
+    return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };
 
@@ -45,17 +47,14 @@ export const login: RequestHandler = async (req, res) => {
 
     if (!user) {
       return res.status(401).json({
-        message:
-          "이메일 또는 비밀번호가 틀렸습니다. -  user 없음(debugging용임.)",
+        message: AUTH_ERROR.INVALID_CREDENTIALS,
       });
     }
 
     const isValid = await bcrypt.compare(password, user.password);
 
     if (!isValid) {
-      return res
-        .status(401)
-        .json({ message: "이메일 또는 비밀 번호가 틀렸습니다." });
+      return res.status(401).json({ message: AUTH_ERROR.INVALID_CREDENTIALS });
     }
 
     const { accessToken, refreshToken } = generateToken(user);
@@ -69,6 +68,8 @@ export const login: RequestHandler = async (req, res) => {
 
     return res.json({ accessToken });
   } catch (error) {
-    return res.status(500).json({ message: "서버 오류", error });
+    console.error("로그인 중 에러 발생: ", error);
+
+    return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };

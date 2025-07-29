@@ -2,6 +2,12 @@ import { Response, RequestHandler } from "express";
 import prisma from "../lib/prisma";
 import { UserRequest } from "../types/expressUserRequest";
 import { Prisma } from "@prisma/client";
+import { REVIEW_SUCCESS } from "../constants/successMessage";
+import {
+  COMMON_ERROR,
+  REQUEST_ERROR,
+  REVIEW_ERROR,
+} from "../constants/errorMessage";
 
 // 상품 리뷰 가져오기
 export const getProductReviews: RequestHandler = async (req, res) => {
@@ -24,7 +30,7 @@ export const getProductReviews: RequestHandler = async (req, res) => {
     const hasMore = page < totalPages;
 
     res.status(200).json({
-      message: "상품 리뷰 목록 가져오기 성공",
+      message: REVIEW_SUCCESS.GET_LIST,
       data: reviews,
       pagination: {
         total,
@@ -36,7 +42,7 @@ export const getProductReviews: RequestHandler = async (req, res) => {
     });
   } catch (error) {
     console.error("상품 리뷰 목록 가져오기 실패", error);
-    res.status(500).json({ message: "서버 내부 오류가 발생했습니다." });
+    res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };
 
@@ -44,7 +50,7 @@ export const getProductReviews: RequestHandler = async (req, res) => {
 export const createProductReview = async (req: UserRequest, res: Response) => {
   const userId = req.user?.id;
   if (!userId) {
-    return res.status(401).json({ message: "유효하지 않은 사용자 입니다." });
+    return res.status(401).json({ message: COMMON_ERROR.UNAUTHORIZED });
   }
 
   const productId = Number(req.params.id);
@@ -59,10 +65,12 @@ export const createProductReview = async (req: UserRequest, res: Response) => {
         userId,
       },
     });
-    return res.status(201).json({ message: "ok", data: review });
+    return res
+      .status(201)
+      .json({ message: REVIEW_SUCCESS.CREATE, data: review });
   } catch (error) {
     console.error("상품 리뷰 작성 실패", error);
-    return res.status(500).json({ message: "서버 내부 오류가 발생했습니다." });
+    return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };
 
@@ -70,7 +78,7 @@ export const createProductReview = async (req: UserRequest, res: Response) => {
 export const updateProductReview = async (req: UserRequest, res: Response) => {
   const userId = req.user?.id;
   if (!userId) {
-    return res.status(401).json({ message: "유효하지 않은 사용자 입니다." });
+    return res.status(401).json({ message: COMMON_ERROR.UNAUTHORIZED });
   }
 
   const productId = Number(req.params.id);
@@ -85,7 +93,7 @@ export const updateProductReview = async (req: UserRequest, res: Response) => {
     if (!review) {
       return res
         .status(404)
-        .json({ message: "해당 리뷰를 찾을 수 없거나 수정 권한이 없습니다." });
+        .json({ message: REVIEW_ERROR.NOT_FOUND_OR_UNAUTHORIZED });
     }
 
     // 리뷰 업데이트
@@ -98,12 +106,12 @@ export const updateProductReview = async (req: UserRequest, res: Response) => {
       },
     });
     return res.status(200).json({
-      message: "리뷰가 성공적으로 수정되었습니다.",
+      message: REVIEW_SUCCESS.UPDATE,
       review: updateReview,
     });
   } catch (error) {
-    console.error("리뷰 수정 중 오류 발생: ", error);
-    return res.status(500).json({ message: "서버 오류 발생 " });
+    console.error("리뷰 수정 중 에러 발생: ", error);
+    return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };
 
@@ -111,7 +119,7 @@ export const updateProductReview = async (req: UserRequest, res: Response) => {
 export const deleteProductReview = async (req: UserRequest, res: Response) => {
   const userId = req.user?.id;
   if (!userId) {
-    return res.status(401).json({ message: "유효하지 않은 사용자 입니다." });
+    return res.status(401).json({ message: COMMON_ERROR.UNAUTHORIZED });
   }
 
   const productId = Number(req.params.id);
@@ -124,7 +132,7 @@ export const deleteProductReview = async (req: UserRequest, res: Response) => {
     return res.sendStatus(204);
   } catch (error) {
     console.error("리뷰 삭제 중 에러 발생: ", error);
-    return res.status(500).json({ message: "서버 에러 발생" });
+    return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };
 
@@ -132,7 +140,7 @@ export const deleteProductReview = async (req: UserRequest, res: Response) => {
 export const likeProductReview = async (req: UserRequest, res: Response) => {
   const userId = req.user?.id;
   if (!userId) {
-    return res.status(401).json({ message: "유효하지 않은 사용자 입니다." });
+    return res.status(401).json({ message: COMMON_ERROR.UNAUTHORIZED });
   }
 
   const productId = Number(req.params.id);
@@ -153,10 +161,10 @@ export const likeProductReview = async (req: UserRequest, res: Response) => {
         },
       });
     }
-    return res.status(201).json({ message: "리뷰 좋아요 성공" });
+    return res.status(201).json({ message: REVIEW_SUCCESS.LIKE });
   } catch (error) {
     console.error("리뷰 좋아요 중 에러 발생: ", error);
-    return res.status(500).json({ message: "서버 에러 발생" });
+    return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };
 
@@ -164,7 +172,7 @@ export const likeProductReview = async (req: UserRequest, res: Response) => {
 export const unlikeProductReview = async (req: UserRequest, res: Response) => {
   const userId = req.user?.id;
   if (!userId) {
-    return res.status(401).json({ message: "유효하지 않은 사용자 입니다." });
+    return res.status(401).json({ message: COMMON_ERROR.UNAUTHORIZED });
   }
 
   const productId = Number(req.params.id);
@@ -186,7 +194,7 @@ export const unlikeProductReview = async (req: UserRequest, res: Response) => {
     res.sendStatus(204);
   } catch (error) {
     console.error("리뷰 좋아요 취소 중 에러 발생: ", error);
-    return res.status(500).json({ message: "서버 에러 발생" });
+    return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };
 
@@ -208,14 +216,14 @@ export const getReviewTags: RequestHandler = async (req, res) => {
     });
 
     if (!reviewTagList) {
-      return res.status(404).json({ message: "해당 리뷰를 찾을 수 없습니다." });
+      return res.status(404).json({ message: REVIEW_ERROR.NOT_FOUND });
     }
     res
       .status(200)
-      .json({ message: "리뷰 태그 목록 조회 성공: ", data: reviewTagList });
+      .json({ message: REVIEW_SUCCESS.GET_LIST, data: reviewTagList });
   } catch (error) {
     console.error("리뷰 태그 목록 조회 중 에러 발생", error);
-    res.status(500).json({ message: "서버 에러 발생" });
+    res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };
 
@@ -223,7 +231,7 @@ export const getReviewTags: RequestHandler = async (req, res) => {
 export const createReviewTag = async (req: UserRequest, res: Response) => {
   const userId = req.user?.id;
   if (!userId) {
-    return res.status(401).json({ message: "유효하지 않은 사용자 입니다." });
+    return res.status(401).json({ message: COMMON_ERROR.UNAUTHORIZED });
   }
 
   const productId = Number(req.params.id);
@@ -233,7 +241,7 @@ export const createReviewTag = async (req: UserRequest, res: Response) => {
 
   if (!tagKeyword || !validTag.test(tagKeyword)) {
     return res.status(400).json({
-      message: "태그는 공백 없이 한글/영문/숫자만 사용할 수 있습니다.",
+      message: REVIEW_ERROR.TAG_INVALID,
     });
   }
 
@@ -246,7 +254,7 @@ export const createReviewTag = async (req: UserRequest, res: Response) => {
     if (!review) {
       return res
         .status(404)
-        .json({ message: "리뷰를 찾을 수 없거나 권한이 없습니다." });
+        .json({ message: REVIEW_ERROR.NOT_FOUND_OR_UNAUTHORIZED });
     }
 
     // 태그 생성
@@ -257,18 +265,18 @@ export const createReviewTag = async (req: UserRequest, res: Response) => {
       },
     });
     res.status(201).json({
-      message: "리뷰 태그 추가 성공: ",
+      message: REVIEW_SUCCESS.TAG_CREATE,
       data: newTag,
     });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === "P2002") {
         return res.status(409).json({
-          message: "이미 동일한 태그가 추가되어 있습니다.",
+          message: REVIEW_ERROR.TAG_DUPLICATE,
         });
       }
     }
     console.error("상품 태그 추가 중 에러 발생: ", error);
-    res.status(500).json({ message: "서버 에러 발생" });
+    res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };
