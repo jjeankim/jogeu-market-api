@@ -30,15 +30,22 @@ export const createCart = async (req: UserRequest, res: Response) => {
   }
 };
 
-export const getCart = async (req: Request, res: Response) => {
+export const getCart = async (req: UserRequest, res: Response) => {
+  const userId = req.user?.id;
+  if (!userId) {
+    return res.status(401).json({ message: "유효하지 않은 사용자입니다." });
+  }
   try {
-    const findCart = await prisma.product.findMany();
+    const findCart = await prisma.cart.findMany({
+      where: { userId },
+      include: { product: true },
+    });
 
     console.log(findCart);
 
     return res.status(200).json({
-      message: "✅ 상품이 성공적으로 조회되었습니다.",
-      products: findCart,
+      message: "✅ 장바구니가 성공적으로 조회되었습니다.",
+      carts: findCart,
     });
   } catch (error) {
     console.error(error);
@@ -46,7 +53,7 @@ export const getCart = async (req: Request, res: Response) => {
   }
 };
 
-export const patchCart = async (req: Request, res: Response) => {
+export const patchCart = async (req: UserRequest, res: Response) => {
   try {
     const id = Number(req.params.id);
     const { quantity } = req.body;
