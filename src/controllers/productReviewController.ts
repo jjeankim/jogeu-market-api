@@ -188,3 +188,32 @@ export const unlikeProductReview = async (req: UserRequest, res: Response) => {
     return res.status(500).json({ message: "서버 에러 발생" });
   }
 };
+
+// 상품 태그 목록 가져오기
+export const getReviewTags: RequestHandler = async (req, res) => {
+  const productId = Number(req.params.id);
+  const reviewId = Number(req.params.reviewId);
+
+  try {
+    const reviewTagList = await prisma.review.findUnique({
+      where: { id: reviewId, productId },
+      select: {
+        reviewTags: {
+          select: {
+            tagKeyword: true,
+          },
+        },
+      },
+    });
+
+    if (!reviewTagList) {
+      return res.status(404).json({ message: "해당 리뷰를 찾을 수 없습니다." });
+    }
+    res
+      .status(200)
+      .json({ message: "리뷰 태그 목록 조회 성공: ", data: reviewTagList });
+  } catch (error) {
+    console.error("리뷰 태그 목록 조회 중 에러 발생", error);
+    res.status(500).json({ message: "서버 에러 발생" });
+  }
+};

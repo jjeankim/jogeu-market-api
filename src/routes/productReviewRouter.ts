@@ -3,6 +3,7 @@ import {
   createProductReview,
   deleteProductReview,
   getProductReviews,
+  getReviewTags,
   likeProductReview,
   unlikeProductReview,
   updateProductReview,
@@ -25,5 +26,10 @@ productReviewRouter
   .route("/:reviewId/like")
   .post(authenticateJWT, likeProductReview)
   .delete(authenticateJWT, unlikeProductReview);
+
+productReviewRouter
+  .route("/:reviewId/tags")
+  .get(getReviewTags)
+  .post(authenticateJWT);
 
 export default productReviewRouter;
