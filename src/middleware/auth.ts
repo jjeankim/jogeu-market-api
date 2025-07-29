@@ -20,7 +20,8 @@ export const authenticateJWT = (
 
   jwt.verify(token, process.env.JWT_SECRET as string, (err, user) => {
     if (err)
-      return res.sendStatus(403).json({ message: "유효하지 않은 토큰입니다." });
+      // return res.sendStatus(403).json({ message: "유효하지 않은 토큰입니다." });
+      return res.status(403).json({ message: "유효하지 않은 토큰입니다." });
     req.user = user as UserRequest["user"];
     next();
   });

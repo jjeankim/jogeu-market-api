@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import generateToken from "../utils/token";
 import { loginSchema, signupSchema } from "../validator/authSchema";
 
-const SALT_ROUNDS = 10;
+const SALT_ROUNDS = Number(process.env.SALT_ROUNDS || "10");
 
 export const signup: RequestHandler = async (req, res) => {
   try {
