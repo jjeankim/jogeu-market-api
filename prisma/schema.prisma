@@ -55,7 +55,7 @@ model Product {
   stockQuantity      Int
   thumbnailImageUrl  String      @db.VarChar(255)
   detailDescription  String      @db.Text
-  isSample           Boolean
+  isSample           Boolean     @default(false)
   samplePrice        Decimal?    @db.Decimal(10, 2)
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt

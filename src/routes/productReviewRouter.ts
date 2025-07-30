@@ -10,13 +10,14 @@ import {
   updateProductReview,
 } from "../controllers/productReviewController";
 import { authenticateJWT } from "../middleware/auth";
+import { getSingleUploader } from "../middleware/upload";
 
 const productReviewRouter = express.Router({ mergeParams: true });
 
 productReviewRouter
   .route("/")
   .get(getProductReviews)
-  .post(authenticateJWT, createProductReview);
+  .post(authenticateJWT, getSingleUploader("imageUrl"), createProductReview);
 
 productReviewRouter
   .route("/:reviewId")
@@ -31,6 +32,6 @@ productReviewRouter
 productReviewRouter
   .route("/:reviewId/tags")
   .get(getReviewTags)
-  .post(authenticateJWT,createReviewTag);
+  .post(authenticateJWT, createReviewTag);
 
 export default productReviewRouter;

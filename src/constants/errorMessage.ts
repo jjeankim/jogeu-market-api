@@ -42,6 +42,7 @@ export const PRODUCT_ERROR = {
   VALIDATION: "상품명과 가격은 필수이며, 가격은 숫자여야 합니다.",
   ITEM_VALIDATION: "상품 ID는 숫자여야 합니다.",
   NOT_FOUND: "상품을 찾을 수 없습니다.",
+  THUMBNAIL_REQUIRED: "썸네일 이미지는 필수입니다.",
 };
 
 export const CART_ERROR = {
