@@ -5,11 +5,12 @@ import {
   getOneProduct,
 } from "../controllers/productController";
 import { getSingleUploader } from "../middleware/upload";
+import { authenticateJWT } from "../middleware/auth";
 
 const ProductRouter = Router();
 
 ProductRouter.route("/")
-  .post(getSingleUploader("thumbnailImageUrl"), createProduct)
+  .post(authenticateJWT,getSingleUploader("thumbnailImageUrl"), createProduct)
   .get(getAllProduct);
 ProductRouter.get("/:id", getOneProduct);
 

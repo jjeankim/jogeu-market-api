@@ -16,36 +16,29 @@ export const createProduct = async (req: Request, res: Response) => {
       samplePrice,
     } = req.body;
 
-    // if (!name || typeof price !== "number") {
-    //   return res.status(400).json({
-    //     message: PRODUCT_ERROR.VALIDATION,
-    //   });
-    // }
-
     if (!name || isNaN(Number(price))) {
       return res.status(400).json({
         message: PRODUCT_ERROR.VALIDATION,
       });
     }
 
-    let thumbnailImageUrl:string
-
-    if(!req.file) {
-      return res.status(400).json({message:})
+    if (!req.file) {
+      return res
+        .status(400)
+        .json({ message: PRODUCT_ERROR.THUMBNAIL_REQUIRED });
     }
 
-    ㅑ
-    if(req.file) {
-      thumbnailImageUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
-    }
+    const thumbnailImageUrl = `${req.protocol}://${req.get("host")}/uploads/${
+      req.file.filename
+    }`;
 
     const newProduct = await prisma.product.create({
       data: {
         name,
         productCode,
-        brandId:Number(brandId),
-        price:Number(price),
-        stockQuantity:Number(stockQuantity),
+        brandId: Number(brandId),
+        price: Number(price),
+        stockQuantity: Number(stockQuantity),
         detailDescription,
         isSample,
         samplePrice,
