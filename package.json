@@ -23,10 +23,7 @@
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-<<<<<<< HEAD
-=======
     "multer": "^2.0.2",
->>>>>>> 600401139915c3337db29664711df247f5332f4f
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "zod": "^4.0.10"
