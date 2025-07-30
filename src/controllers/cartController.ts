@@ -1,11 +1,13 @@
 import { Request, Response } from "express";
 import prisma from "../lib/prisma";
 import { UserRequest } from "../types/expressUserRequest";
+import { COMMON_ERROR } from "../constants/errorMessage";
+import { CART_SUCCESS } from "../constants/successMessage";
 
 export const createCart = async (req: UserRequest, res: Response) => {
   const userId = req.user?.id;
   if (!userId) {
-    return res.status(401).json({ message: "유효하지 않은 사용자입니다." });
+    return res.status(401).json({ message: COMMON_ERROR.UNAUTHORIZED });
   }
   try {
     const { productId, quantity } = req.body;
@@ -21,19 +23,19 @@ export const createCart = async (req: UserRequest, res: Response) => {
     console.log(newCartItem);
 
     return res.status(201).json({
-      message: "✅ 카트에 제품이 성공적으로 담겼습니다.",
+      message: CART_SUCCESS.ADD,
       carts: newCartItem,
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "서버 오류가 발생했습니다." });
+    return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };
 
 export const getCart = async (req: UserRequest, res: Response) => {
   const userId = req.user?.id;
   if (!userId) {
-    return res.status(401).json({ message: "유효하지 않은 사용자입니다." });
+    return res.status(401).json({ message: COMMON_ERROR.UNAUTHORIZED });
   }
   try {
     const findCart = await prisma.cart.findMany({
@@ -44,12 +46,12 @@ export const getCart = async (req: UserRequest, res: Response) => {
     console.log(findCart);
 
     return res.status(200).json({
-      message: "✅ 장바구니가 성공적으로 조회되었습니다.",
+      message: CART_SUCCESS.ADD,
       carts: findCart,
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "서버 오류가 발생했습니다." });
+    return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };
 
@@ -66,12 +68,12 @@ export const patchCart = async (req: UserRequest, res: Response) => {
     console.log(patchCart);
 
     return res.status(200).json({
-      message: "✅ 상품이 성공적으로 수정되었습니다.",
+      message: CART_SUCCESS.UPDATE,
       products: patchCart,
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "서버 오류가 발생했습니다." });
+    return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };
 
@@ -86,11 +88,11 @@ export const deleteCart = async (req: Request, res: Response) => {
     console.log(deleteCart);
 
     return res.status(200).json({
-      message: "✅ 상품이 성공적으로 삭제되었습니다.",
+      message: CART_SUCCESS.DELETE,
       products: deleteCart,
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "서버 오류가 발생했습니다." });
+    return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };

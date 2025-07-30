@@ -2,6 +2,8 @@ import { RequestHandler, Response } from "express";
 import prisma from "../lib/prisma";
 import { getPagination } from "../utils/pagination";
 import { UserRequest } from "../types/expressUserRequest";
+import { SAMPLE_ORDER_SUCCESS } from "../constants/successMessage";
+import { COMMON_ERROR, SAMPLE_ORDER_ERROR } from "../constants/errorMessage";
 
 export const getSampleList: RequestHandler = async (req, res) => {
   const { page, limit, offset } = getPagination(req.query);
@@ -21,7 +23,7 @@ export const getSampleList: RequestHandler = async (req, res) => {
     const totalPages = Math.ceil(total / limit);
     const hasMore = page < totalPages;
     return res.status(200).json({
-      message: "샘플 목록 조회 성공",
+      message: SAMPLE_ORDER_SUCCESS.SAMPLE_LIST,
       data: sampleList,
       pagination: {
         total,
@@ -33,14 +35,14 @@ export const getSampleList: RequestHandler = async (req, res) => {
     });
   } catch (error) {
     console.error("샘플 상품 목록 가져오기 실패", error);
-    res.status(500).json({ message: "서버 내부 오류가 발생했습니다." });
+    res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };
 
 export const createSampleOrder = async (req: UserRequest, res: Response) => {
   const userId = req.user?.id;
   if (!userId) {
-    return res.status(401).json({ message: "유효하지 않은 사용자입니다." });
+    return res.status(401).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 
   const { shippingAddressId, paymentMethod, deliveryMessage } = req.body;
@@ -148,7 +150,7 @@ export const createSampleOrder = async (req: UserRequest, res: Response) => {
     if (sapmleCartItems.length === 0) {
       return res
         .status(400)
-        .json({ message: "샘플 장바구니가 비어 있습니다." });
+        .json({ message: SAMPLE_ORDER_ERROR.EMPTY_SAMPLE_CART });
     }
 
     const itemsTotal = sapmleCartItems.reduce((sum, item) => {
@@ -192,10 +194,10 @@ export const createSampleOrder = async (req: UserRequest, res: Response) => {
     });
     return res
       .status(201)
-      .json({ message: "샘플 주문 생성 완료", data: newOrder });
+      .json({ message: SAMPLE_ORDER_SUCCESS.ORDER_CREATE, data: newOrder });
   } catch (error) {
     console.error("샘플 주문 생성 실패", error);
-    return res.status(500).json({ message: "서버 오류 발생" });
+    return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };
 

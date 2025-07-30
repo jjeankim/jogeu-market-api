@@ -1,5 +1,7 @@
 import { Request, RequestHandler, Response } from "express";
 import prisma from "../lib/prisma";
+import { COMMON_ERROR, PRODUCT_ERROR } from "../constants/errorMessage";
+import { PRODUCT_SUCCESS } from "../constants/successMessage";
 
 export const createProduct = async (req: Request, res: Response) => {
   try {
@@ -17,8 +19,7 @@ export const createProduct = async (req: Request, res: Response) => {
 
     if (!name || typeof price !== "number") {
       return res.status(400).json({
-        message:
-          "상품명(name)과 가격(price)은 필수이며, price는 숫자여야 합니다.",
+        message: PRODUCT_ERROR.VALIDATION,
       });
     }
 
@@ -39,12 +40,12 @@ export const createProduct = async (req: Request, res: Response) => {
     console.log(newProduct);
 
     return res.status(201).json({
-      message: "✅ 상품이 성공적으로 등록되었습니다.",
+      message: PRODUCT_SUCCESS.CREATE,
       products: newProduct,
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "서버 오류가 발생했습니다." });
+    return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };
 
@@ -55,12 +56,12 @@ export const getAllProduct = async (req: Request, res: Response) => {
     console.log(findAllProduct);
 
     return res.status(200).json({
-      message: "✅ 상품이 성공적으로 조회되었습니다.",
+      message: PRODUCT_SUCCESS.LIST,
       products: findAllProduct,
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "서버 오류가 발생했습니다." });
+    return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };
 
@@ -69,7 +70,7 @@ export const getOneProduct = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
 
     if (isNaN(id)) {
-      return res.status(400).json({ message: "상품 ID는 숫자여야 합니다." });
+      return res.status(400).json({ message: PRODUCT_ERROR.ITEM_VALIDATION });
     }
 
     const findOneProduct = await prisma.product.findUnique({
@@ -77,19 +78,17 @@ export const getOneProduct = async (req: Request, res: Response) => {
     });
 
     if (!findOneProduct) {
-      return res.status(404).json({ message: "상품을 찾을 수 없습니다." });
+      return res.status(404).json({ message: PRODUCT_ERROR.NOT_FOUND });
     }
 
     console.log(findOneProduct);
 
     return res.status(200).json({
-      message: "✅ 상품이 성공적으로 조회되었습니다.",
+      message: PRODUCT_SUCCESS.LIST,
       products: findOneProduct,
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "서버 오류가 발생했습니다." });
+    return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };
-
-
