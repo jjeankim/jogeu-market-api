@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import prisma from "../lib/prisma";
 import { UserRequest } from "../types/expressUserRequest";
+import { ADDRESS_ERROR, COMMON_ERROR } from "../constants/errorMessage";
+import { ADDRESS_SUCCESS } from "../constants/successMessage";
 
 // 배송지 등록
 export const createAddress = async (req: UserRequest, res: Response) => {
@@ -24,10 +26,10 @@ export const createAddress = async (req: UserRequest, res: Response) => {
         isDefault: false,
       },
     });
-    res.status(201).json(address);
+    res.status(201).json({ message: ADDRESS_SUCCESS.CREATE, address });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "서버 오류" });
+    res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };
 
@@ -50,7 +52,7 @@ export const putAddress = async (req: UserRequest, res: Response) => {
     });
 
     if (!existing || existing.userId !== userId) {
-      return res.status(404).json({ message: "배송지를 찾을 수 없습니다. " });
+      return res.status(404).json({ message: ADDRESS_ERROR.NOT_FOUND });
     }
 
     const updated = await prisma.address.update({
@@ -67,10 +69,10 @@ export const putAddress = async (req: UserRequest, res: Response) => {
 
     return res
       .status(200)
-      .json({ message: "배송지가 수정되었습니다.", data: updated });
+      .json({ message: ADDRESS_SUCCESS.UPDATE, data: updated });
   } catch (error) {
     console.error("배송지 수정 실패 : ", error);
-    return res.status(500).json({ message: "서버 오류가 발생했습니다." });
+    return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };
 
@@ -85,9 +87,7 @@ export const patchAddress = async (req: UserRequest, res: Response) => {
     });
 
     if (!target || target.userId !== userId) {
-      return res
-        .status(404)
-        .json({ message: "해당 배송지를 찾을 수 없습니다." });
+      return res.status(404).json({ message: ADDRESS_ERROR.NOT_FOUND });
     }
 
     await prisma.address.updateMany({
@@ -110,12 +110,12 @@ export const patchAddress = async (req: UserRequest, res: Response) => {
     });
 
     return res.status(200).json({
-      message: "기본 배송지가 변경되었습니다.",
+      message: ADDRESS_SUCCESS.SET_DEFAULT,
       data: updateAddress,
     });
   } catch (error) {
-    console.error("기본 배송지 변경 오류 :", error);
-    return res.status(500).json({ message: "서버 오류가 발생했습니다. " });
+    console.error("기본 배송지 변경 에러 :", error);
+    return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };
 
@@ -129,11 +129,11 @@ export const getAllAddress = async (req: UserRequest, res: Response) => {
     });
 
     return res.status(200).json({
-      message: "사용자의 등록된 주소지를 가져옵니다.",
+      message: ADDRESS_SUCCESS.GET_ALL,
       data: findAllAddress,
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "서버 오류가 발생했습니다." });
+    return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };
