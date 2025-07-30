@@ -1,12 +1,14 @@
 import { Response } from "express";
 import { UserRequest } from "../types/expressUserRequest";
 import prisma from "../lib/prisma";
+import { COMMON_ERROR, ORDER_ERROR } from "../constants/errorMessage";
+import { ORDER_SUCCESS } from "../constants/successMessage";
 
 // 주문 생성
 export const createOrder = async (req: UserRequest, res: Response) => {
   const userId = req.user?.id;
   if (!userId) {
-    return res.status(401).json({ message: "유효하지 않은 사용자 입니다." });
+    return res.status(401).json({ message: COMMON_ERROR.UNAUTHORIZED });
   }
 
   const { shippingAddressId, paymentMethod, deliveryMessage } = req.body;
@@ -16,10 +18,9 @@ export const createOrder = async (req: UserRequest, res: Response) => {
       where: { userId },
       include: { product: true },
     });
-    console.log("장바구니 아이템,", cartItems);
 
     if (cartItems.length === 0) {
-      return res.status(400).json({ message: "장바구니가 비어 있습니다." });
+      return res.status(400).json({ message: ORDER_ERROR.EMPTY_CART });
     }
 
     // 총액 계산
@@ -58,11 +59,12 @@ export const createOrder = async (req: UserRequest, res: Response) => {
     // 장바구니 비우기
     await prisma.cart.deleteMany({ where: { userId } });
 
-    return res.status(201).json({ message: "주문 생성 완료,", data: newOrder });
+    return res
+      .status(201)
+      .json({ message: ORDER_SUCCESS.CREATE, data: newOrder });
   } catch (error) {
     console.error("주문 생성 실패,", error);
-    return res.status(500).json({ message: "서버 오류 발생" });
-
+    return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };
 
@@ -70,7 +72,7 @@ export const createOrder = async (req: UserRequest, res: Response) => {
 export const getAllOrders = async (req: UserRequest, res: Response) => {
   const userId = req.user?.id;
   if (!userId) {
-    return res.status(401).json({ message: "유효하지 않은 사용자 입니다." });
+    return res.status(401).json({ message: COMMON_ERROR.UNAUTHORIZED });
   }
   try {
     const orders = await prisma.order.findMany({
@@ -82,17 +84,12 @@ export const getAllOrders = async (req: UserRequest, res: Response) => {
       },
     });
     if (!orders) {
-      return res.status(404).json({ message: "주문 목록을 찾을 수 없습니다." });
+      return res.status(404).json({ message: ORDER_ERROR.LIST_NOT_FOUND });
     }
     console.log(orders);
-    res
-      .status(200)
-      .json({ message: "주문 목록 조회에 성공했습니다.", data: orders });
+    res.status(200).json({ message: ORDER_SUCCESS.LIST, data: orders });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "서버 오류로 주문 목록 조회에 실패했습니다." });
-
+    res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };
 
@@ -100,7 +97,7 @@ export const getAllOrders = async (req: UserRequest, res: Response) => {
 export const getOrder = async (req: UserRequest, res: Response) => {
   const userId = req.user?.id;
   if (!userId) {
-    return res.status(401).json({ message: "유효하지 않은 사용자 입니다." });
+    return res.status(401).json({ message: COMMON_ERROR.UNAUTHORIZED });
   }
   const id = Number(req.params.id);
   try {
@@ -108,14 +105,13 @@ export const getOrder = async (req: UserRequest, res: Response) => {
       where: { id },
     });
     if (!order) {
-      return res.status(404).json({ message: "주문을 찾을 수 없습니다." });
+      return res.status(404).json({ message: ORDER_ERROR.DETAIL_NOT_FOUND });
     }
     console.log(order);
-    return res
-      .status(200)
-      .json({ message: "주문 상세 조회 성공", data: order });
+    return res.status(200).json({ message: ORDER_SUCCESS.DETAIL, data: order });
   } catch (error) {
     console.error("주문 상세 조회 실패,", error);
+    res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };
 
@@ -123,19 +119,17 @@ export const getOrder = async (req: UserRequest, res: Response) => {
 export const updateOrderStatus = async (req: UserRequest, res: Response) => {
   const userId = req.user?.id;
   if (!userId) {
-    return res.status(401).json({ message: "유효하지 않은 사용자 입니다." });
+    return res.status(401).json({ message: COMMON_ERROR.UNAUTHORIZED });
   }
   const id = parseInt(req.params.id);
   if (isNaN(id)) {
-    return res.status(400).json({ error: "유효한 주문 ID가 필요합니다." });
+    return res.status(400).json({ error: ORDER_ERROR.INVALID_ID });
   }
   const { paymentStatus } = req.body;
 
   const validStatus = ["결제대기", "결제완료", "결제실패"];
   if (!paymentStatus || !validStatus.includes(paymentStatus)) {
-    return res
-      .status(400)
-      .json({ error: "유효한 paymentStatus값이 필요합니다." });
+    return res.status(400).json({ error: ORDER_ERROR.INVALID_PAYMENT_STATUS });
   }
 
   try {
@@ -144,16 +138,16 @@ export const updateOrderStatus = async (req: UserRequest, res: Response) => {
       data: { paymentStatus },
     });
     res.status(200).json({
-      message: "주문상태가 성공적으로 변경되었습니다.",
+      message: ORDER_SUCCESS.STATUS_UPDATE,
       data: updated,
     });
   } catch (error) {
     if (typeof error === "object" && error !== null && "code" in error) {
       if ((error as { code: string }).code === "P2025") {
-        return res.status(404).json({ error: "해당 주문을 찾을 수 없습니다." });
+        return res.status(404).json({ error: ORDER_ERROR.ORDER_NOT_FOUND });
       }
     }
-    console.error("주문 상태 변경 오류: ", error);
-    return res.status(500).json({ error: "주문상태 변경에 실패했습니다." });
+    console.error("주문 상태 변경 에러: ", error);
+    return res.status(500).json({ message: ORDER_ERROR.STATUS_UPDATE_FAILED });
   }
 };

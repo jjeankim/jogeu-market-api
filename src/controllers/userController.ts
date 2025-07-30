@@ -4,6 +4,8 @@ import { NextFunction, Response, RequestHandler } from "express";
 import { UserRequest } from "../types/expressUserRequest";
 import prisma from "../lib/prisma";
 import bcrypt from "bcryptjs";
+import { COMMON_ERROR, USER_ERROR } from "../constants/errorMessage";
+import { USER_SUCCESS } from "../constants/successMessage";
 
 const SALT_ROUNDS = Number(process.env.SALT_ROUNDS || "10");
 
@@ -14,46 +16,44 @@ export const getMe: RequestHandler = async (
 ) => {
   // console.log(`req.user :${JSON.stringify(req.user)}`);
   if (!req.user || !req.user.id) {
-    return res.status(401).json({ message: "인증 정보가 없습니다." });
+    return res.status(401).json({ message: COMMON_ERROR.UNAUTHORIZED });
   }
 
   const user = await prisma.user.findUnique({ where: { id: req.user.id } });
 
   if (!user) {
-    return res.status(404).json({ message: "유저를 찾을 수 없습니다." });
+    return res.status(404).json({ message: USER_ERROR.USER_NOT_FOUND });
   }
 
   res.status(200).json({ id: user.id, email: user.email });
 };
 
-export const createAddress: RequestHandler = async (
-  req: UserRequest,
-  res: Response,
-  next: NextFunction
-) => {
-  if (!req.user || !req.user.id) {
-    return res.status(401).json({ message: "인증 정보가 없습니다." });
-  }
+// export const createAddress: RequestHandler = async (
+//   req: UserRequest,
+//   res: Response,
+//   next: NextFunction
+// ) => {
+//   if (!req.user || !req.user.id) {
+//     return res.status(401).json({ message: "인증 정보가 없습니다." });
+//   }
 
-  const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+//   const user = await prisma.user.findUnique({ where: { id: req.user.id } });
 
-  if (!user) {
-    return res.status(404).json({ message: "유저를 찾을 수 없습니다." });
-  }
-};
+//   if (!user) {
+//     return res.status(404).json({ message: "유저를 찾을 수 없습니다." });
+//   }
+// };
 
 // 비밀번호 변경 (사용자 본인의 속성 변경)
 export const updatePassword = async (req: UserRequest, res: Response) => {
   const userId = req.user?.id;
   if (!userId) {
-    return res.status(401).json({ message: "유효하지 않은 사용자입니다." });
+    return res.status(401).json({ message: COMMON_ERROR.UNAUTHORIZED });
   }
 
   const { currentPassword, newPassword } = req.body;
   if (!currentPassword || !newPassword) {
-    return res
-      .status(400)
-      .json({ message: "현재 비밀번호와 새 비밀번호를 모두 입력해주세요." });
+    return res.status(400).json({ message: USER_ERROR.PASSWORD_REQUIRED });
   }
 
   try {
@@ -64,7 +64,7 @@ export const updatePassword = async (req: UserRequest, res: Response) => {
     });
 
     if (!user) {
-      return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+      return res.status(404).json({ message: COMMON_ERROR.UNAUTHORIZED });
     }
     // 현재 비밀번호가 일치하는지 확인
     const isPasswordMatch = await bcrypt.compare(
@@ -73,9 +73,7 @@ export const updatePassword = async (req: UserRequest, res: Response) => {
     );
 
     if (!isPasswordMatch) {
-      return res
-        .status(401)
-        .json({ message: "현재 비밀번호가 일치하지 않습니다." });
+      return res.status(401).json({ message: USER_ERROR.PASSWORD_INCORRECT });
     }
 
     // 새 비밀번호 해싱
@@ -87,9 +85,9 @@ export const updatePassword = async (req: UserRequest, res: Response) => {
     });
 
     // 변경이 성공적이라면 front에서 토스트로 해당 메세지를 띄워주면 될 것 같은 느낌적인 느낌?
-    return res.status(200).json({ message: "비밀번호가 변경되었습니다." });
+    return res.status(200).json({ message: USER_SUCCESS.PASSWORD_UPDATED });
   } catch (error) {
     console.error("비밀번호 변경 중 에러:", error);
-    return res.status(500).json({ message: "서버 오류 발생" });
+    return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };
