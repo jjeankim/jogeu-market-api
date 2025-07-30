@@ -24,6 +24,8 @@ export const SERVER_ERROR = {
 export const AUTH_ERROR = {
   EMAIL_ALREADY_EXISTS: "이미 등록된 이메일입니다.",
   INVALID_CREDENTIALS: "이메일 또는 비밀번호가 올바르지 않습니다.",
+  TOKEN_MISSING:"인증 토큰이 제공되지 않았습니다.",
+  TOKEN_INVALID:"유효하지 않거나 만료된 토큰입니다."
 };
 
 export const USER_ERROR = {

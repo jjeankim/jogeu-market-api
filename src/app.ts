@@ -16,12 +16,14 @@ import orderRouter from "./routes/orderRouter";
 import wishlistRouter from "./routes/wishlistRouter";
 import sampleRouter from "./routes/sampleRouter";
 import CouponRouter from "./routes/couponRouter";
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser())
 
 app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 
