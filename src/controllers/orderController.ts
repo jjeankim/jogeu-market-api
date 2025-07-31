@@ -76,6 +76,7 @@ export const getAllOrders = async (req: UserRequest, res: Response) => {
   }
   try {
     const orders = await prisma.order.findMany({
+      where: { userId }, // 로그인 유저 ID로 필터링
       include: {
         user: true,
         address: true,
@@ -107,7 +108,12 @@ export const getOrder = async (req: UserRequest, res: Response) => {
     if (!order) {
       return res.status(404).json({ message: ORDER_ERROR.DETAIL_NOT_FOUND });
     }
-    console.log(order);
+
+    // 권한 체크: 주문 userId와 요청 userId 비교
+    if (order.userId !== userId) {
+      return res.status(403).json({ message: "권한이 없습니다." });
+    }
+
     return res.status(200).json({ message: ORDER_SUCCESS.DETAIL, data: order });
   } catch (error) {
     console.error("주문 상세 조회 실패,", error);
