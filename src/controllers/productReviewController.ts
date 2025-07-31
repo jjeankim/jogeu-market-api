@@ -3,11 +3,7 @@ import prisma from "../lib/prisma";
 import { UserRequest } from "../types/expressUserRequest";
 import { Prisma } from "@prisma/client";
 import { REVIEW_SUCCESS } from "../constants/successMessage";
-import {
-  COMMON_ERROR,
-  REQUEST_ERROR,
-  REVIEW_ERROR,
-} from "../constants/errorMessage";
+import { COMMON_ERROR, REVIEW_ERROR } from "../constants/errorMessage";
 
 // 상품 리뷰 가져오기
 export const getProductReviews: RequestHandler = async (req, res) => {
@@ -55,14 +51,20 @@ export const createProductReview = async (req: UserRequest, res: Response) => {
 
   const productId = Number(req.params.id);
   const { rating, reviewText } = req.body;
-
+  let imageUrl: string | null = null;
+  if (req.file) {
+    imageUrl = `${req.protocol}://${req.get("host")}/uploads/${
+      req.file.filename
+    }`;
+  }
   try {
     const review = await prisma.review.create({
       data: {
-        rating,
+        rating: Number(rating),
         reviewText,
         productId,
         userId,
+        imageUrl,
       },
     });
     return res

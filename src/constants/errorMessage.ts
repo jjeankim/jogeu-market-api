@@ -24,6 +24,8 @@ export const SERVER_ERROR = {
 export const AUTH_ERROR = {
   EMAIL_ALREADY_EXISTS: "이미 등록된 이메일입니다.",
   INVALID_CREDENTIALS: "이메일 또는 비밀번호가 올바르지 않습니다.",
+  TOKEN_MISSING:"인증 토큰이 제공되지 않았습니다.",
+  TOKEN_INVALID:"유효하지 않거나 만료된 토큰입니다."
 };
 
 export const USER_ERROR = {
@@ -40,6 +42,7 @@ export const PRODUCT_ERROR = {
   VALIDATION: "상품명과 가격은 필수이며, 가격은 숫자여야 합니다.",
   ITEM_VALIDATION: "상품 ID는 숫자여야 합니다.",
   NOT_FOUND: "상품을 찾을 수 없습니다.",
+  THUMBNAIL_REQUIRED: "썸네일 이미지는 필수입니다.",
 };
 
 export const CART_ERROR = {

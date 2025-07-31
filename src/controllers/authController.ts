@@ -1,10 +1,12 @@
-import { Request, RequestHandler, Response } from "express";
+import { RequestHandler, Response } from "express";
 import prisma from "../lib/prisma";
 import bcrypt from "bcryptjs";
 import generateToken from "../utils/token";
 import { loginSchema, signupSchema } from "../validator/authSchema";
 import { AUTH_ERROR, COMMON_ERROR } from "../constants/errorMessage";
 import { AUTH_SUCCESS } from "../constants/successMessage";
+import { UserRequest } from "../types/expressUserRequest";
+import jwt from "jsonwebtoken";
 
 const SALT_ROUNDS = Number(process.env.SALT_ROUNDS || "10");
 
@@ -70,6 +72,41 @@ export const login: RequestHandler = async (req, res) => {
   } catch (error) {
     console.error("로그인 중 에러 발생: ", error);
 
+    return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
+  }
+};
+
+export const refreshToken = async (req: UserRequest, res: Response) => {
+  const token = req.cookies.refreshToken;
+  if (!token) {
+    return res.status(401).json({ message: AUTH_ERROR.TOKEN_MISSING });
+  }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
+      id: number;
+    };
+
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: COMMON_ERROR.UNAUTHORIZED });
+    }
+
+    const { accessToken, refreshToken } = generateToken(user);
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+    res.json({ accessToken });
+  } catch (error) {
+    if (error instanceof jwt.JsonWebTokenError) {
+      return res.status(401).json({ message: AUTH_ERROR.TOKEN_INVALID });
+    }
+    console.log("토큰 갱신 중 에러: ", error);
     return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };
