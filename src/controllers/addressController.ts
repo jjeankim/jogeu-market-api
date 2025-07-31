@@ -18,11 +18,11 @@ export const createAddress = async (req: UserRequest, res: Response) => {
     const address = await prisma.address.create({
       data: {
         userId: req.user!.id,
-        recipientName: recipientName,
-        recipientPhone: recipientPhone,
-        addressLine1: addressLine1,
-        addressLine2: addressLine2,
-        postCode: postCode,
+        recipientName,
+        recipientPhone,
+        addressLine1,
+        addressLine2,
+        postCode,
         isDefault: false,
       },
     });

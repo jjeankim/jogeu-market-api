@@ -28,22 +28,6 @@ export const getMe: RequestHandler = async (
   res.status(200).json({ id: user.id, email: user.email });
 };
 
-// export const createAddress: RequestHandler = async (
-//   req: UserRequest,
-//   res: Response,
-//   next: NextFunction
-// ) => {
-//   if (!req.user || !req.user.id) {
-//     return res.status(401).json({ message: "인증 정보가 없습니다." });
-//   }
-
-//   const user = await prisma.user.findUnique({ where: { id: req.user.id } });
-
-//   if (!user) {
-//     return res.status(404).json({ message: "유저를 찾을 수 없습니다." });
-//   }
-// };
-
 // 비밀번호 변경 (사용자 본인의 속성 변경)
 export const updatePassword = async (req: UserRequest, res: Response) => {
   const userId = req.user?.id;
