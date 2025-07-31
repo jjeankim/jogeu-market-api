@@ -6,9 +6,11 @@ import { CART_SUCCESS } from "../constants/successMessage";
 
 export const createCart = async (req: UserRequest, res: Response) => {
   const userId = req.user?.id;
+
   if (!userId) {
     return res.status(401).json({ message: COMMON_ERROR.UNAUTHORIZED });
   }
+
   try {
     const { productId, quantity } = req.body;
 
