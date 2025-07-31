@@ -19,13 +19,16 @@ export const getMe: RequestHandler = async (
     return res.status(401).json({ message: COMMON_ERROR.UNAUTHORIZED });
   }
 
-  const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+  const user = await prisma.user.findUnique({
+    where: { id: req.user.id },
+    select: { id: true, name: true, email: true },
+  });
 
   if (!user) {
     return res.status(404).json({ message: USER_ERROR.USER_NOT_FOUND });
   }
 
-  res.status(200).json({ id: user.id, email: user.email });
+  res.status(200).json(user);
 };
 
 // 비밀번호 변경 (사용자 본인의 속성 변경)
