@@ -48,6 +48,10 @@ export const updatePassword = async (req: UserRequest, res: Response) => {
   if (!currentPassword || !newPassword) {
     return res.status(400).json({ message: USER_ERROR.PASSWORD_REQUIRED });
   }
+  
+  if (currentPassword === newPassword) {
+    return res.status(400).json({ message: USER_ERROR.SAME_AS_OLD_PASSWORD });
+  }
 
   try {
     // 현재 사용자 정보 조회

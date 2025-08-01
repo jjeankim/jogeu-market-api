@@ -32,6 +32,7 @@ export const USER_ERROR = {
   USER_NOT_FOUND: "사용자를 찾을 수 없습니다.",
   PASSWORD_REQUIRED: "현재 비밀번호와 새 비밀번호를 모두 입력해야 합니다.",
   PASSWORD_INCORRECT: "현재 비밀번호가 일치하지 않습니다.",
+  SAME_AS_OLD_PASSWORD: "기존 비밀번호와 동일합니다.",
 };
 
 export const BRAND_ERROR = {
