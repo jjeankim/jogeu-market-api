@@ -1,4 +1,4 @@
-import { RequestHandler, Response } from "express";
+import { Request, RequestHandler, Response } from "express";
 import prisma from "../lib/prisma";
 import bcrypt from "bcryptjs";
 import generateToken from "../utils/token";
@@ -66,6 +66,7 @@ export const login: RequestHandler = async (req, res) => {
       secure: process.env.NODE_ENV === "production", //개발중일때는 false
       sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
+      path:"/"
     });
 
     return res.json({ 
@@ -86,7 +87,7 @@ export const login: RequestHandler = async (req, res) => {
 export const refreshToken = async (req: UserRequest, res: Response) => {
   const token = req.cookies.refreshToken;
   if (!token) {
-    return res.status(401).json({ message: AUTH_ERROR.TOKEN_MISSING });
+    return res.status(204).send() //로그인 안한 상태임
   }
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
@@ -117,3 +118,14 @@ export const refreshToken = async (req: UserRequest, res: Response) => {
     return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };
+
+export const logout = (req: Request, res:Response) =>{
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/", 
+  });
+
+  return res.status(200).json({ message: "로그아웃 완료" });
+}
