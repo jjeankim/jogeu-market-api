@@ -81,7 +81,16 @@ export const getAllOrders = async (req: UserRequest, res: Response) => {
         user: true,
         address: true,
         coupon: true,
-        orderItems: true,
+        // 브랜드 이름 추가
+        orderItems: {
+          include: {
+            product: {
+              include: {
+                brand: true,
+              },
+            },
+          },
+        },
       },
     });
     if (!orders) {
