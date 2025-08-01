@@ -21,7 +21,13 @@ export const getMe: RequestHandler = async (
 
   const user = await prisma.user.findUnique({
     where: { id: req.user.id },
-    select: { id: true, name: true, email: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phoneNumber: true,
+      addresses: true,
+    },
   });
 
   if (!user) {
@@ -41,6 +47,10 @@ export const updatePassword = async (req: UserRequest, res: Response) => {
   const { currentPassword, newPassword } = req.body;
   if (!currentPassword || !newPassword) {
     return res.status(400).json({ message: USER_ERROR.PASSWORD_REQUIRED });
+  }
+  
+  if (currentPassword === newPassword) {
+    return res.status(400).json({ message: USER_ERROR.SAME_AS_OLD_PASSWORD });
   }
 
   try {
