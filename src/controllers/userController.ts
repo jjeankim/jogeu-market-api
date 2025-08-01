@@ -21,7 +21,13 @@ export const getMe: RequestHandler = async (
 
   const user = await prisma.user.findUnique({
     where: { id: req.user.id },
-    select: { id: true, name: true, email: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phoneNumber: true,
+      addresses: true,
+    },
   });
 
   if (!user) {
