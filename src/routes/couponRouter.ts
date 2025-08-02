@@ -9,7 +9,7 @@ import { authenticateJWT } from "../middleware/auth";
 
 const CouponRouter = Router();
 CouponRouter.post("/me/coupon", authenticateJWT, createCoupon)
-  .get("/me/coupon", authenticateJWT, findMyCoupon)
+  .get("/me", authenticateJWT, findMyCoupon)
   .get("/", findAllCoupons)
   .patch("/me/:id", authenticateJWT, useCoupon);
 
