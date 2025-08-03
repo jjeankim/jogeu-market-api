@@ -60,7 +60,29 @@ export const createProduct = async (req: Request, res: Response) => {
 
 export const getAllProduct = async (req: Request, res: Response) => {
   try {
-    const findAllProduct = await prisma.product.findMany();
+    const { category } = req.query;
+    
+    let whereClause = {};
+    
+    // 카테고리 필터링 (실제 구현에서는 브랜드나 상품 카테고리 필드에 따라 필터링)
+    if (category && category !== 'all') {
+      // 예시: 브랜드 이름으로 필터링 (실제 구현에서는 적절한 필드 사용)
+      whereClause = {
+        brand: {
+          name: {
+            contains: category as string,
+            mode: 'insensitive'
+          }
+        }
+      };
+    }
+
+    const findAllProduct = await prisma.product.findMany({
+      where: whereClause,
+      include: {
+        brand: true,
+      },
+    });
 
     console.log(findAllProduct);
 
@@ -84,6 +106,9 @@ export const getOneProduct = async (req: Request, res: Response) => {
 
     const findOneProduct = await prisma.product.findUnique({
       where: { id: id },
+      include: {
+        brand: true,
+      },
     });
 
     if (!findOneProduct) {
