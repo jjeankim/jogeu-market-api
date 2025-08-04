@@ -147,6 +147,8 @@ model OrderItem {
   order             Order    @relation(fields: [orderId], references: [id])
   product           Product  @relation(fields: [productId], references: [id])
 
+  review            Review?  // 1:1 관계 (nullable, 아직 리뷰 안 썼을 수 있으니까)
+
 }
 
 // 사용자별 쿠폰 모델
@@ -167,18 +169,21 @@ model UserCoupon {
 
 // 리뷰 모델
 model Review {
-  id         Int         @id @default(autoincrement())
-  productId  Int
-  userId     Int
-  rating     Int
-  reviewText String      @db.Text
-  imageUrl   String?     @db.VarChar(255)
-  likesCount Int         @default(0)
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  product    Product     @relation(fields: [productId], references: [id])
-  user       User        @relation(fields: [userId], references: [id])
-  reviewTags ReviewTag[]
+  id           Int         @id @default(autoincrement())
+  orderItemId  Int         @unique // 주문 상품당 리뷰 1개만 가능하게
+  productId    Int
+  userId       Int
+  rating       Int
+  reviewText   String      @db.Text
+  imageUrl     String?     @db.VarChar(255)
+  likesCount   Int         @default(0)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  product      Product     @relation(fields: [productId], references: [id])
+  user         User        @relation(fields: [userId], references: [id])
+  orderItem    OrderItem   @relation(fields: [orderItemId], references: [id])
+  reviewTags   ReviewTag[]
+  @@unique([productId, userId]) // 한 유저가 같은 상품에 여러 번 리뷰 작성 방지
 }
 
 // 리뷰 태그 모델
