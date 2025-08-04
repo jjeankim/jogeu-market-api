@@ -38,7 +38,6 @@ app.use("/api/product", ProductRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/wishlist", wishlistRouter);
 app.use("/api/coupon", CouponRouter);
-
 app.use("/api/orders", orderRouter);
 app.use("/api/samples", sampleRouter);
 
