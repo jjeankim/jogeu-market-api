@@ -1,6 +1,7 @@
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
@@ -9,33 +10,33 @@ datasource db {
 
 // 사용자 모델: 애플리케이션의 핵심 사용자 정보를 담습니다.
 model User {
-  id            Int           @id @default(autoincrement())
-  email         String        @unique @db.VarChar(255)
-  password      String        @db.VarChar(255)
-  name          String        @db.VarChar(100)
-  phoneNumber   String?        @db.VarChar(20)
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  addresses     Address[]
-  carts         Cart[]
-  orders        Order[]
-  userCoupons   UserCoupon[]
-  reviews       Review[]
-  wishlists     Wishlist[]
+  id          Int          @id @default(autoincrement())
+  email       String       @unique @db.VarChar(255)
+  password    String       @db.VarChar(255)
+  name        String       @db.VarChar(100)
+  phoneNumber String?      @db.VarChar(20)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  addresses   Address[]
+  carts       Cart[]
+  orders      Order[]
+  userCoupons UserCoupon[]
+  reviews     Review[]
+  wishlists   Wishlist[]
 }
 
 // 배송지 모델
 model Address {
-  id             Int      @id @default(autoincrement())
+  id             Int     @id @default(autoincrement())
   userId         Int
-  recipientName  String   @db.VarChar(100)
-  recipientPhone String   @db.VarChar(20)
-  addressLine1   String   @db.VarChar(255)
-  addressLine2   String?  @db.VarChar(255)
-  postCode       String   @db.VarChar(10)
+  recipientName  String  @db.VarChar(100)
+  recipientPhone String  @db.VarChar(20)
+  addressLine1   String  @db.VarChar(255)
+  addressLine2   String? @db.VarChar(255)
+  postCode       String  @db.VarChar(10)
   isDefault      Boolean
-  user           User     @relation(fields: [userId], references: [id])
-  order         Order[]
+  user           User    @relation(fields: [userId], references: [id])
+  order          Order[]
 }
 
 // 브랜드 모델
@@ -68,6 +69,7 @@ model Product {
   orderItems         OrderItem[]
   reviews            Review[]
   wishlists          Wishlist[]
+
 }
 
 //제품 카테고리
@@ -82,18 +84,19 @@ model Category {
 
 // 장바구니 모델
 model Cart {
-  id         Int      @id @default(autoincrement())
-  userId     Int
-  productId  Int
-  quantity   Int
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  user       User     @relation(fields: [userId], references: [id])
-  product    Product  @relation(fields: [productId], references: [id])
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  productId Int
+  quantity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
 }
 
 // 주문 모델
 model Order {
+
   id                 Int         @id @default(autoincrement())
   orderNumber        String      @unique @db.VarChar(50)
   userId             Int
@@ -112,10 +115,12 @@ model Order {
   coupon             Coupon?     @relation(fields: [couponId], references: [id])
   orderItems         OrderItem[]
   usedCouponInfo     UserCoupon? @relation(name: "OrderToUserCoupon")
+
 }
 
 // 쿠폰 모델
 model Coupon {
+
   id                   Int          @id @default(autoincrement())
   code                 String       @unique @db.VarChar(50)
   name                 String       @db.VarChar(100)
@@ -127,12 +132,13 @@ model Coupon {
   isActive             Boolean
   usageLimit           Int?
   issuedBySamplePurchase Boolean
-  orders               Order[]
-  userCoupons          UserCoupon[]
+  orders                 Order[]
+  userCoupons            UserCoupon[]
 }
 
 // 주문 상품 항목 모델
 model OrderItem {
+
   id                Int      @id @default(autoincrement())
   orderId           Int
   productId         Int
@@ -140,58 +146,59 @@ model OrderItem {
   priceAtPurchase   Int
   order             Order    @relation(fields: [orderId], references: [id])
   product           Product  @relation(fields: [productId], references: [id])
+
 }
 
 // 사용자별 쿠폰 모델
 model UserCoupon {
-  id          Int      @id @default(autoincrement())
-  userId      Int
-  couponId    Int
-  isUsed      Boolean
-  usedAt      DateTime?
-  orderId     Int?     @unique
+  id       Int       @id @default(autoincrement())
+  userId   Int
+  couponId Int
+  isUsed   Boolean
+  usedAt   DateTime?
+  orderId  Int?      @unique
 
-  user        User     @relation(fields: [userId], references: [id])
-  coupon      Coupon   @relation(fields: [couponId], references: [id])
-  usedByOrder Order?   @relation(name: "OrderToUserCoupon", fields: [orderId], references: [id])
+  user        User   @relation(fields: [userId], references: [id])
+  coupon      Coupon @relation(fields: [couponId], references: [id])
+  usedByOrder Order? @relation(name: "OrderToUserCoupon", fields: [orderId], references: [id])
 
   @@unique([userId, couponId])
 }
 
 // 리뷰 모델
 model Review {
-  id          Int         @id @default(autoincrement())
-  productId   Int
-  userId      Int
-  rating      Int
-  reviewText  String      @db.Text
-  imageUrl    String?     @db.VarChar(255)
-  likesCount  Int         @default(0)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  product     Product     @relation(fields: [productId], references: [id])
-  user        User        @relation(fields: [userId], references: [id])
-  reviewTags  ReviewTag[]
+  id         Int         @id @default(autoincrement())
+  productId  Int
+  userId     Int
+  rating     Int
+  reviewText String      @db.Text
+  imageUrl   String?     @db.VarChar(255)
+  likesCount Int         @default(0)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  product    Product     @relation(fields: [productId], references: [id])
+  user       User        @relation(fields: [userId], references: [id])
+  reviewTags ReviewTag[]
 }
 
 // 리뷰 태그 모델
 model ReviewTag {
-  id         Int     @id @default(autoincrement())
+  id         Int    @id @default(autoincrement())
   reviewId   Int
-  tagKeyword String  @db.VarChar(100)
-  review     Review  @relation(fields: [reviewId], references: [id])
+  tagKeyword String @db.VarChar(100)
+  review     Review @relation(fields: [reviewId], references: [id])
 
   @@unique([reviewId, tagKeyword])
 }
 
 // 찜 목록 모델
 model Wishlist {
-  id         Int      @id @default(autoincrement())
-  userId     Int
-  productId  Int
-  createdAt  DateTime @default(now())
-  user       User     @relation(fields: [userId], references: [id])
-  product    Product  @relation(fields: [productId], references: [id])
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  productId Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
 
   @@unique([userId, productId])
 }

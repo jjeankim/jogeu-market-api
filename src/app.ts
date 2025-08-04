@@ -23,18 +23,17 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser())
+app.use(cookieParser());
 
 app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-
 app.use("/api/products/:id/reviews", productReviewRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
 app.use("/api/brand", brandRouter);
-app.use("/api/products", ProductRouter);
+app.use("/api/product", ProductRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/wishlist", wishlistRouter);
 app.use("/api/coupon", CouponRouter);
