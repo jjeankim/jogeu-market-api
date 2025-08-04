@@ -8,6 +8,7 @@ import {
 import { authenticateJWT } from "../middleware/auth";
 
 const CouponRouter = Router();
+
 CouponRouter.post("/me", authenticateJWT, createCoupon)
   .get("/me", authenticateJWT, findMyCoupon)
   .get("/", findAllCoupons)
