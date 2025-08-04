@@ -1,114 +1,10 @@
-/*
-  Warnings:
-
-  - You are about to drop the `Addresses` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Brands` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Carts` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Coupons` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Order_Items` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Orders` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Products` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Review_Tags` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Reviews` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `User_Coupons` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Users` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Wishlists` table. If the table is not empty, all the data it contains will be lost.
-
-*/
--- DropForeignKey
-ALTER TABLE "Addresses" DROP CONSTRAINT "Addresses_user_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "Carts" DROP CONSTRAINT "Carts_product_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "Carts" DROP CONSTRAINT "Carts_user_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "Order_Items" DROP CONSTRAINT "Order_Items_order_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "Order_Items" DROP CONSTRAINT "Order_Items_product_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "Orders" DROP CONSTRAINT "Orders_coupon_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "Orders" DROP CONSTRAINT "Orders_shipping_address_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "Orders" DROP CONSTRAINT "Orders_user_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "Products" DROP CONSTRAINT "Products_brand_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "Review_Tags" DROP CONSTRAINT "Review_Tags_review_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "Reviews" DROP CONSTRAINT "Reviews_product_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "Reviews" DROP CONSTRAINT "Reviews_user_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "User_Coupons" DROP CONSTRAINT "User_Coupons_coupon_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "User_Coupons" DROP CONSTRAINT "User_Coupons_order_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "User_Coupons" DROP CONSTRAINT "User_Coupons_user_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "Wishlists" DROP CONSTRAINT "Wishlists_product_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "Wishlists" DROP CONSTRAINT "Wishlists_user_id_fkey";
-
--- DropTable
-DROP TABLE "Addresses";
-
--- DropTable
-DROP TABLE "Brands";
-
--- DropTable
-DROP TABLE "Carts";
-
--- DropTable
-DROP TABLE "Coupons";
-
--- DropTable
-DROP TABLE "Order_Items";
-
--- DropTable
-DROP TABLE "Orders";
-
--- DropTable
-DROP TABLE "Products";
-
--- DropTable
-DROP TABLE "Review_Tags";
-
--- DropTable
-DROP TABLE "Reviews";
-
--- DropTable
-DROP TABLE "User_Coupons";
-
--- DropTable
-DROP TABLE "Users";
-
--- DropTable
-DROP TABLE "Wishlists";
-
 -- CreateTable
 CREATE TABLE "User" (
     "id" SERIAL NOT NULL,
     "email" VARCHAR(255) NOT NULL,
     "password" VARCHAR(255) NOT NULL,
     "name" VARCHAR(100) NOT NULL,
-    "phoneNumber" VARCHAR(20) NOT NULL,
+    "phoneNumber" VARCHAR(20),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -143,16 +39,29 @@ CREATE TABLE "Product" (
     "name" VARCHAR(255) NOT NULL,
     "productCode" VARCHAR(50) NOT NULL,
     "brandId" INTEGER NOT NULL,
-    "price" DECIMAL(10,2) NOT NULL,
+    "price" INTEGER NOT NULL,
     "stockQuantity" INTEGER NOT NULL,
     "thumbnailImageUrl" VARCHAR(255) NOT NULL,
+    "detailImageUrl" VARCHAR(255) NOT NULL,
     "detailDescription" TEXT NOT NULL,
-    "isSample" BOOLEAN NOT NULL,
-    "samplePrice" DECIMAL(10,2),
+    "isSample" BOOLEAN NOT NULL DEFAULT false,
+    "samplePrice" INTEGER,
+    "categoryId" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Product_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Category" (
+    "id" SERIAL NOT NULL,
+    "name" VARCHAR(100) NOT NULL,
+    "slug" VARCHAR(50) NOT NULL,
+    "description" TEXT,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+
+    CONSTRAINT "Category_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -174,11 +83,12 @@ CREATE TABLE "Order" (
     "userId" INTEGER NOT NULL,
     "shippingAddressId" INTEGER NOT NULL,
     "couponId" INTEGER,
-    "totalAmount" DECIMAL(10,2) NOT NULL,
-    "shippingFee" DECIMAL(10,2) NOT NULL,
+    "totalAmount" INTEGER NOT NULL,
+    "shippingFee" INTEGER NOT NULL,
     "paymentStatus" VARCHAR(50) NOT NULL,
     "paymentMethod" VARCHAR(50) NOT NULL,
     "deliveryMessage" TEXT,
+    "isSample" BOOLEAN NOT NULL DEFAULT false,
     "orderedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -191,8 +101,8 @@ CREATE TABLE "Coupon" (
     "code" VARCHAR(50) NOT NULL,
     "name" VARCHAR(100) NOT NULL,
     "discountType" VARCHAR(20) NOT NULL,
-    "discountValue" DECIMAL(10,2) NOT NULL,
-    "minOrderAmount" DECIMAL(10,2),
+    "discountValue" INTEGER NOT NULL,
+    "minOrderAmount" INTEGER,
     "validFrom" TIMESTAMP(3) NOT NULL,
     "validUntil" TIMESTAMP(3) NOT NULL,
     "isActive" BOOLEAN NOT NULL,
@@ -208,7 +118,7 @@ CREATE TABLE "OrderItem" (
     "orderId" INTEGER NOT NULL,
     "productId" INTEGER NOT NULL,
     "quantity" INTEGER NOT NULL,
-    "priceAtPurchase" DECIMAL(10,2) NOT NULL,
+    "priceAtPurchase" INTEGER NOT NULL,
 
     CONSTRAINT "OrderItem_pkey" PRIMARY KEY ("id")
 );
@@ -269,6 +179,12 @@ CREATE UNIQUE INDEX "Brand_name_key" ON "Brand"("name");
 CREATE UNIQUE INDEX "Product_productCode_key" ON "Product"("productCode");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Category_name_key" ON "Category"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Category_slug_key" ON "Category"("slug");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Order_orderNumber_key" ON "Order"("orderNumber");
 
 -- CreateIndex
@@ -288,6 +204,9 @@ CREATE UNIQUE INDEX "Wishlist_userId_productId_key" ON "Wishlist"("userId", "pro
 
 -- AddForeignKey
 ALTER TABLE "Address" ADD CONSTRAINT "Address_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Product" ADD CONSTRAINT "Product_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Product" ADD CONSTRAINT "Product_brandId_fkey" FOREIGN KEY ("brandId") REFERENCES "Brand"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
