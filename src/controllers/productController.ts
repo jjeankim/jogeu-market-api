@@ -9,6 +9,7 @@ export const createProduct = async (req: Request, res: Response) => {
       name,
       productCode,
       brandId,
+      categoryId,
       price,
       stockQuantity,
       detailDescription,
@@ -37,12 +38,14 @@ export const createProduct = async (req: Request, res: Response) => {
         name,
         productCode,
         brandId: Number(brandId),
+        categoryId: Number(categoryId),
         price: Number(price),
         stockQuantity: Number(stockQuantity),
+        thumbnailImageUrl,
+        detailImageUrl: "", // 빈 문자열로 설정
         detailDescription,
         isSample,
-        samplePrice,
-        thumbnailImageUrl,
+        samplePrice: samplePrice ? Number(samplePrice) : null,
       },
     });
 
@@ -64,15 +67,11 @@ export const getAllProduct = async (req: Request, res: Response) => {
     
     let whereClause = {};
     
-    // 카테고리 필터링 (실제 구현에서는 브랜드나 상품 카테고리 필드에 따라 필터링)
+    // 카테고리 필터링
     if (category && category !== 'all') {
-      // 예시: 브랜드 이름으로 필터링 (실제 구현에서는 적절한 필드 사용)
       whereClause = {
-        brand: {
-          name: {
-            contains: category as string,
-            mode: 'insensitive'
-          }
+        category: {
+          slug: category as string
         }
       };
     }
@@ -81,6 +80,7 @@ export const getAllProduct = async (req: Request, res: Response) => {
       where: whereClause,
       include: {
         brand: true,
+        category: true,
       },
     });
 
@@ -108,6 +108,7 @@ export const getOneProduct = async (req: Request, res: Response) => {
       where: { id: id },
       include: {
         brand: true,
+        category: true,
       },
     });
 

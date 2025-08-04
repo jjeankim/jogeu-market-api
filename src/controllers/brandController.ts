@@ -13,9 +13,15 @@ export const createBrand = async (req: Request, res: Response) => {
       });
     }
 
+    // 로고 이미지 URL 처리
+    const logoImageUrl = req.file 
+      ? `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`
+      : "";
+
     const newBrand = await prisma.brand.create({
       data: {
         name,
+        logoImageUrl,
       },
     });
 
