@@ -10,10 +10,10 @@ export const createCoupon = async (req: UserRequest, res: Response) => {
     return res.status(401).json({ message: COMMON_ERROR.UNAUTHORIZED });
   }
   try {
-    const { couponCode } = req.body;
+    const { code } = req.body;
 
     const coupon = await prisma.coupon.findUnique({
-      where: { code: couponCode },
+      where: { code: code },
     });
 
     if (!coupon || !coupon.isActive || new Date() > coupon.validUntil) {
