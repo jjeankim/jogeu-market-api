@@ -7,11 +7,15 @@ import {
 import { getSingleUploader } from "../middleware/upload";
 import { authenticateJWT } from "../middleware/auth";
 
-const ProductRouter = Router();
+const productRouter = Router();
 
-ProductRouter.route("/")
-  .post(authenticateJWT,getSingleUploader("thumbnailImageUrl"), createProduct)
+productRouter
+  .route("/")
+  .post(authenticateJWT, getSingleUploader("thumbnailImageUrl"), createProduct)
   .get(getAllProduct);
-ProductRouter.get("/:id", getOneProduct);
 
-export default ProductRouter;
+// productRouter.get("/", getBySubCategory);
+
+productRouter.get("/:id", getOneProduct);
+
+export default productRouter;
