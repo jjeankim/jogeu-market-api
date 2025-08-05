@@ -34,7 +34,7 @@ app.use("/api/products/:id/reviews", productReviewRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
 app.use("/api/brand", brandRouter);
-app.use("/api/products", ProductRouter);
+app.use("/api/product", ProductRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/wishlist", wishlistRouter);
 app.use("/api/coupon", CouponRouter);
