@@ -89,6 +89,7 @@ export const getAllOrders = async (req: UserRequest, res: Response) => {
                 brand: true,
               },
             },
+            review: true
           },
         },
       },

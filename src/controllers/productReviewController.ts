@@ -50,7 +50,7 @@ export const createProductReview = async (req: UserRequest, res: Response) => {
   }
 
   const productId = Number(req.params.id);
-  const { rating, reviewText } = req.body;
+  const { rating, reviewText,orderItemId } = req.body;
   let imageUrl: string | null = null;
   if (req.file) {
     imageUrl = `${req.protocol}://${req.get("host")}/uploads/${
@@ -62,6 +62,7 @@ export const createProductReview = async (req: UserRequest, res: Response) => {
       data: {
         rating: Number(rating),
         reviewText,
+        orderItemId,
         productId,
         userId,
         imageUrl,
