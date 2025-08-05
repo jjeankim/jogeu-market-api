@@ -62,7 +62,7 @@ export const createProductReview = async (req: UserRequest, res: Response) => {
       data: {
         rating: Number(rating),
         reviewText,
-        orderItemId,
+        orderItemId :Number(orderItemId),
         productId,
         userId,
         imageUrl,

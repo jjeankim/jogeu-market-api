@@ -183,7 +183,7 @@ model Review {
   user         User        @relation(fields: [userId], references: [id])
   orderItem    OrderItem   @relation(fields: [orderItemId], references: [id])
   reviewTags   ReviewTag[]
-  @@unique([productId, userId]) // 한 유저가 같은 상품에 여러 번 리뷰 작성 방지
+  // @@unique([productId, userId]) // 한 유저가 같은 상품에 여러 번 리뷰 작성 방지
 }
 
 // 리뷰 태그 모델
