@@ -7,11 +7,12 @@ import {
 } from "../controllers/couponController";
 import { authenticateJWT } from "../middleware/auth";
 
-const CouponRouter = Router();
+const couponRouter = Router();
 
-CouponRouter.post("/me", authenticateJWT, createCoupon)
+couponRouter
+  .post("/me", authenticateJWT, createCoupon)
   .get("/me", authenticateJWT, findMyCoupon)
   .get("/", findAllCoupons)
   .patch("/me/:id", authenticateJWT, useCoupon);
 
-export default CouponRouter;
+export default couponRouter;

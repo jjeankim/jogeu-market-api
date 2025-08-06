@@ -7,7 +7,7 @@ import { swaggerSpec } from "./config/swagger";
 
 import dotenv from "dotenv";
 import authRouter from "./routes/authRouter";
-import ProductRouter from "./routes/productRouter";
+// import ProductRouter from "./routes/productRouter";
 import userRouter from "./routes/userRouter";
 import brandRouter from "./routes/brandRouter";
 import cartRouter from "./routes/cartRouter";
@@ -15,8 +15,10 @@ import orderRouter from "./routes/orderRouter";
 
 import wishlistRouter from "./routes/wishlistRouter";
 import sampleRouter from "./routes/sampleRouter";
-import CouponRouter from "./routes/couponRouter";
+import couponRouter from "./routes/couponRouter";
 import cookieParser from "cookie-parser";
+import productRouter from "./routes/productRouter";
+import categoryRouter from "./routes/categoryRouter";
 
 dotenv.config();
 
@@ -33,12 +35,13 @@ app.use("/api/products/:id/reviews", productReviewRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
 app.use("/api/brand", brandRouter);
-app.use("/api/product", ProductRouter);
+app.use("/api/product", productRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/wishlist", wishlistRouter);
-app.use("/api/coupon", CouponRouter);
+app.use("/api/coupon", couponRouter);
 app.use("/api/orders", orderRouter);
 app.use("/api/samples", sampleRouter);
+app.use("/api/categories", categoryRouter);
 
 app.listen(4000, () => {
   console.log("Server running on port 4000");
