@@ -118,7 +118,7 @@ export const updateProductReview = async (req: UserRequest, res: Response) => {
   }
 };
 
-// 상품 리뷰 삭제하기
+// 상품 리뷰 삭제하기 (sofe-delete)
 export const deleteProductReview = async (req: UserRequest, res: Response) => {
   const userId = req.user?.id;
   if (!userId) {
@@ -129,8 +129,9 @@ export const deleteProductReview = async (req: UserRequest, res: Response) => {
   const reviewId = Number(req.params.reviewId);
 
   try {
-    await prisma.review.delete({
-      where: { id: reviewId, productId },
+    await prisma.review.update({
+      where: { id: reviewId },
+      data:{isDeleted: true}
     });
     return res.sendStatus(204);
   } catch (error) {

@@ -4,21 +4,82 @@ import bcrypt from "bcrypt";
 async function main() {
   console.log("🌱 시딩 시작...");
 
-  // 기존 데이터 삭제 (순서 중요: 외래키 제약조건 때문에)
-  console.log("🗑️ 기존 데이터 삭제 중...");
-  await prisma.userCoupon.deleteMany({});
-  await prisma.coupon.deleteMany({});
-  await prisma.orderItem.deleteMany({});
-  await prisma.order.deleteMany({});
-  await prisma.cart.deleteMany({});
-  await prisma.product.deleteMany({});
-  await prisma.brand.deleteMany({});
-  await prisma.category.deleteMany({});
-  
-  // 브랜드 데이터 추가
+  // 비밀번호 해시화
+  const hashedPassword = await bcrypt.hash("User@1234", 10);
+
+  // 1. 유저 5명 생성
+  console.log("👥 유저 생성 중...");
+  await prisma.user.createMany({
+    data: [
+      {
+        email: "user1@email.com",
+        password: hashedPassword,
+        name: "김사용자",
+        phoneNumber: "010-1234-5678",
+      },
+      {
+        email: "user2@email.com", 
+        password: hashedPassword,
+        name: "이구매자",
+        phoneNumber: "010-2345-6789",
+      },
+      {
+        email: "user3@email.com",
+        password: hashedPassword,
+        name: "박고객",
+        phoneNumber: "010-3456-7890",
+      },
+      {
+        email: "user4@email.com",
+        password: hashedPassword,
+        name: "최멤버",
+        phoneNumber: "010-4567-8901",
+      },
+      {
+        email: "user5@email.com",
+        password: hashedPassword,
+        name: "정회원",
+        phoneNumber: "010-5678-9012",
+      },
+    ],
+  });
+
+  // 2. 카테고리 생성
+  console.log("📂 카테고리 생성 중...");
+  await prisma.category.createMany({
+    data: [
+      {
+        name: "뷰티",
+        slug: "beauty",
+        description: "화장품, 스킨케어, 메이크업 제품",
+        isActive: true,
+      },
+      {
+        name: "푸드",
+        slug: "food", 
+        description: "건강식품, 영양제, 간식",
+        isActive: true,
+      },
+      {
+        name: "리빙",
+        slug: "living",
+        description: "생활용품, 홈케어 제품",
+        isActive: true,
+      },
+      {
+        name: "펫",
+        slug: "pet",
+        description: "반려동물 용품",
+        isActive: true,
+      },
+    ],
+  });
+
+ // 브랜드 데이터 추가
   console.log("🏷️ 브랜드 생성 중...");
   await prisma.brand.createMany({
     data: [
+      // 뷰티 브랜드
       { name: "에버블룸" },
       { name: "블루허브" },
       { name: "루나화이트" },
@@ -29,39 +90,278 @@ async function main() {
       { name: "로지스킨" },
       { name: "피토베라" },
       { name: "오가닉테라" },
+      
+      // 푸드 브랜드
+      { name: "헬시밀" },
+      { name: "네이처푸드" },
+      { name: "바이탈웰" },
+      { name: "오가닉키친" },
+      { name: "퓨어라이프" },
+      
+      // 리빙 브랜드
+      { name: "홈스위트" },
+      { name: "리빙프로" },
+      { name: "데일리라이프" },
+      
+      // 펫 브랜드
+      { name: "펫프렌즈" },
+      { name: "해피펫" },
+      { name: "펫케어" },
     ],
   });
 
+
   // 상품 데이터 추가
   console.log("📦 상품 생성 중...");
-  await prisma.product.createMany({
+ await prisma.product.createMany({
     data: [
-      {
-        name: "에버블룸 수분크림 50ml",
-        productCode: "PRD1001",
-        brandId: 1,
-        price: 28000,
-        stockQuantity: 100,
-        thumbnailImageUrl: "",
-        detailDescription: "피부 깊숙이 수분을 채워주는 고보습 크림",
-        isSample: false,
-        samplePrice: 1000,
-        categoryId: 1,
-      },
-      {
-        name: "에버블룸 클렌징폼",
-        productCode: "PRD1002",
-        brandId: 1,
-        price: 15000,
-        stockQuantity: 150,
-        thumbnailImageUrl: "",
-        detailDescription: "자극 없이 세정력 좋은 클렌징폼",
-        isSample: true,
-        samplePrice: 500,
-        categoryId: 1,
-      },
+      { name: "에버블룸 수분크림 50ml", productCode: "BS001", brandId: 1, price: 28000, stockQuantity: 100, thumbnailImageUrl: "", detailDescription: "피부 깊숙이 수분을 채워주는 고보습 크림", isSample: false, samplePrice: 1000, categoryId: 1 },
+      { name: "블루허브 클렌징폼 150ml", productCode: "BS002", brandId: 2, price: 15000, stockQuantity: 150, thumbnailImageUrl: "", detailDescription: "자극 없이 세정력 좋은 클렌징폼", isSample: true, samplePrice: 500, categoryId: 1 },
+      { name: "루나화이트 토너 200ml", productCode: "BS003", brandId: 3, price: 22000, stockQuantity: 80, thumbnailImageUrl: "", detailDescription: "피부결 정돈해주는 토너", isSample: true, samplePrice: 800, categoryId: 1 },
+      { name: "네이처소울 세럼 30ml", productCode: "BS004", brandId: 4, price: 35000, stockQuantity: 60, thumbnailImageUrl: "", detailDescription: "집중 영양 공급 세럼", isSample: false, samplePrice: 1200, categoryId: 1 },
+      { name: "그린필드 선크림 50ml", productCode: "BS005", brandId: 5, price: 18000, stockQuantity: 120, thumbnailImageUrl: "", detailDescription: "자외선 차단 선크림", isSample: true, samplePrice: 600, categoryId: 1 },
+      { name: "퓨어딥 미스트 100ml", productCode: "BS006", brandId: 6, price: 16000, stockQuantity: 90, thumbnailImageUrl: "", detailDescription: "진정 보습 미스트", isSample: true, samplePrice: 500, categoryId: 1 },
+      { name: "아쿠아하이드 아이크림 20ml", productCode: "BS007", brandId: 7, price: 32000, stockQuantity: 70, thumbnailImageUrl: "", detailDescription: "탄력 아이크림", isSample: false, samplePrice: 1100, categoryId: 1 },
+      { name: "로지스킨 패드 60매", productCode: "BS008", brandId: 8, price: 19000, stockQuantity: 100, thumbnailImageUrl: "", detailDescription: "각질 제거 패드", isSample: true, samplePrice: 700, categoryId: 1 },
+      { name: "피토베라 마스크팩 10매", productCode: "BS009", brandId: 9, price: 25000, stockQuantity: 80, thumbnailImageUrl: "", detailDescription: "집중 케어 마스크팩", isSample: false, samplePrice: 900, categoryId: 1 },
+      { name: "오가닉테라 오일 30ml", productCode: "BS010", brandId: 10, price: 42000, stockQuantity: 50, thumbnailImageUrl: "", detailDescription: "영양 공급 페이스오일", isSample: false, samplePrice: 1400, categoryId: 1 },
+      { name: "에버블룸 에센스 50ml", productCode: "BS011", brandId: 1, price: 30000, stockQuantity: 75, thumbnailImageUrl: "", detailDescription: "고농축 에센스", isSample: true, samplePrice: 1000, categoryId: 1 },
+      { name: "블루허브 젤크림 75ml", productCode: "BS012", brandId: 2, price: 24000, stockQuantity: 85, thumbnailImageUrl: "", detailDescription: "수분 젤크림", isSample: true, samplePrice: 800, categoryId: 1 },
+      { name: "루나화이트 필링젤 100ml", productCode: "BS013", brandId: 3, price: 21000, stockQuantity: 95, thumbnailImageUrl: "", detailDescription: "순한 필링젤", isSample: true, samplePrice: 700, categoryId: 1 },
+      { name: "네이처소울 나이트크림 50ml", productCode: "BS014", brandId: 4, price: 38000, stockQuantity: 60, thumbnailImageUrl: "", detailDescription: "야간 집중 크림", isSample: false, samplePrice: 1300, categoryId: 1 },
+      { name: "그린필드 밤크림 30ml", productCode: "BS015", brandId: 5, price: 26000, stockQuantity: 70, thumbnailImageUrl: "", detailDescription: "진정 밤크림", isSample: true, samplePrice: 900, categoryId: 1 },
+      { name: "퓨어딥 스크럽 80ml", productCode: "BS016", brandId: 6, price: 17000, stockQuantity: 110, thumbnailImageUrl: "", detailDescription: "부드러운 스크럽", isSample: true, samplePrice: 600, categoryId: 1 },
+      { name: "아쿠아하이드 앰플 15ml", productCode: "BS017", brandId: 7, price: 45000, stockQuantity: 40, thumbnailImageUrl: "", detailDescription: "고농축 앰플", isSample: false, samplePrice: 1500, categoryId: 1 },
+      { name: "로지스킨 미셀라워터 300ml", productCode: "BS018", brandId: 8, price: 14000, stockQuantity: 130, thumbnailImageUrl: "", detailDescription: "순한 미셀라워터", isSample: true, samplePrice: 400, categoryId: 1 },
+      { name: "피토베라 수딩젤 200ml", productCode: "BS019", brandId: 9, price: 23000, stockQuantity: 90, thumbnailImageUrl: "", detailDescription: "진정 수딩젤", isSample: true, samplePrice: 800, categoryId: 1 },
+      { name: "오가닉테라 미스트세럼 80ml", productCode: "BS020", brandId: 10, price: 29000, stockQuantity: 65, thumbnailImageUrl: "", detailDescription: "미스트 타입 세럼", isSample: true, samplePrice: 1000, categoryId: 1 },
     ],
   });
+
+  // 🎨 뷰티 - 메이크업 (BM) 20개
+  await prisma.product.createMany({
+    data: [
+      { name: "에버블룸 파운데이션 30ml", productCode: "BM001", brandId: 1, price: 35000, stockQuantity: 80, thumbnailImageUrl: "", detailDescription: "커버력 좋은 파운데이션", isSample: false, samplePrice: 1200, categoryId: 1 },
+      { name: "블루허브 컨실러 6ml", productCode: "BM002", brandId: 2, price: 18000, stockQuantity: 120, thumbnailImageUrl: "", detailDescription: "높은 커버력 컨실러", isSample: true, samplePrice: 600, categoryId: 1 },
+      { name: "루나화이트 립스틱", productCode: "BM003", brandId: 3, price: 22000, stockQuantity: 100, thumbnailImageUrl: "", detailDescription: "매트 립스틱", isSample: false, samplePrice: 800, categoryId: 1 },
+      { name: "네이처소울 아이섀도 팔레트", productCode: "BM004", brandId: 4, price: 42000, stockQuantity: 60, thumbnailImageUrl: "", detailDescription: "9색 아이섀도 팔레트", isSample: false, samplePrice: 1400, categoryId: 1 },
+      { name: "그린필드 마스카라 8ml", productCode: "BM005", brandId: 5, price: 25000, stockQuantity: 90, thumbnailImageUrl: "", detailDescription: "볼륨 마스카라", isSample: true, samplePrice: 800, categoryId: 1 },
+      { name: "퓨어딥 블러셔", productCode: "BM006", brandId: 6, price: 20000, stockQuantity: 110, thumbnailImageUrl: "", detailDescription: "자연스러운 블러셔", isSample: true, samplePrice: 700, categoryId: 1 },
+      { name: "아쿠아하이드 하이라이터", productCode: "BM007", brandId: 7, price: 28000, stockQuantity: 75, thumbnailImageUrl: "", detailDescription: "글로우 하이라이터", isSample: true, samplePrice: 900, categoryId: 1 },
+      { name: "로지스킨 아이라이너", productCode: "BM008", brandId: 8, price: 15000, stockQuantity: 140, thumbnailImageUrl: "", detailDescription: "워터프루프 아이라이너", isSample: true, samplePrice: 500, categoryId: 1 },
+      { name: "피토베라 틴트", productCode: "BM009", brandId: 9, price: 16000, stockQuantity: 130, thumbnailImageUrl: "", detailDescription: "물들임 틴트", isSample: true, samplePrice: 500, categoryId: 1 },
+      { name: "오가닉테라 쿠션 15g", productCode: "BM010", brandId: 10, price: 32000, stockQuantity: 70, thumbnailImageUrl: "", detailDescription: "촉촉한 쿠션", isSample: false, samplePrice: 1100, categoryId: 1 },
+      { name: "에버블룸 프라이머 30ml", productCode: "BM011", brandId: 1, price: 24000, stockQuantity: 85, thumbnailImageUrl: "", detailDescription: "메이크업 베이스", isSample: true, samplePrice: 800, categoryId: 1 },
+      { name: "블루허브 세팅파우더", productCode: "BM012", brandId: 2, price: 26000, stockQuantity: 80, thumbnailImageUrl: "", detailDescription: "피니싱 파우더", isSample: true, samplePrice: 900, categoryId: 1 },
+      { name: "루나화이트 립글로스", productCode: "BM013", brandId: 3, price: 18000, stockQuantity: 115, thumbnailImageUrl: "", detailDescription: "윤기 립글로스", isSample: true, samplePrice: 600, categoryId: 1 },
+      { name: "네이처소울 브라우 펜슬", productCode: "BM014", brandId: 4, price: 12000, stockQuantity: 150, thumbnailImageUrl: "", detailDescription: "아이브로우 펜슬", isSample: true, samplePrice: 400, categoryId: 1 },
+      { name: "그린필드 컨투어팔레트", productCode: "BM015", brandId: 5, price: 35000, stockQuantity: 65, thumbnailImageUrl: "", detailDescription: "쉐딩 팔레트", isSample: false, samplePrice: 1200, categoryId: 1 },
+      { name: "퓨어딥 글리터", productCode: "BM016", brandId: 6, price: 14000, stockQuantity: 120, thumbnailImageUrl: "", detailDescription: "반짝이 글리터", isSample: true, samplePrice: 500, categoryId: 1 },
+      { name: "아쿠아하이드 픽서", productCode: "BM017", brandId: 7, price: 22000, stockQuantity: 95, thumbnailImageUrl: "", detailDescription: "메이크업 픽서", isSample: true, samplePrice: 750, categoryId: 1 },
+      { name: "로지스킨 립밤", productCode: "BM018", brandId: 8, price: 8000, stockQuantity: 180, thumbnailImageUrl: "", detailDescription: "보습 립밤", isSample: true, samplePrice: 300, categoryId: 1 },
+      { name: "피토베라 네일 에나멜", productCode: "BM019", brandId: 9, price: 10000, stockQuantity: 160, thumbnailImageUrl: "", detailDescription: "매니큐어", isSample: false, samplePrice: 400, categoryId: 1 },
+      { name: "오가닉테라 BB크림 40ml", productCode: "BM020", brandId: 10, price: 28000, stockQuantity: 85, thumbnailImageUrl: "", detailDescription: "올인원 BB크림", isSample: true, samplePrice: 950, categoryId: 1 },
+    ],
+  });
+
+  // 🎨 뷰티 - 헤어/바디 (BH) 20개
+  await prisma.product.createMany({
+    data: [
+      { name: "에버블룸 샴푸 300ml", productCode: "BH001", brandId: 1, price: 18000, stockQuantity: 120, thumbnailImageUrl: "", detailDescription: "영양 공급 샴푸", isSample: true, samplePrice: 600, categoryId: 1 },
+      { name: "블루허브 컨디셔너 300ml", productCode: "BH002", brandId: 2, price: 20000, stockQuantity: 110, thumbnailImageUrl: "", detailDescription: "부드러운 컨디셔너", isSample: true, samplePrice: 700, categoryId: 1 },
+      { name: "루나화이트 헤어트리트먼트 200ml", productCode: "BH003", brandId: 3, price: 25000, stockQuantity: 90, thumbnailImageUrl: "", detailDescription: "집중 케어 트리트먼트", isSample: false, samplePrice: 850, categoryId: 1 },
+      { name: "네이처소울 헤어오일 100ml", productCode: "BH004", brandId: 4, price: 32000, stockQuantity: 70, thumbnailImageUrl: "", detailDescription: "영양 헤어오일", isSample: false, samplePrice: 1100, categoryId: 1 },
+      { name: "그린필드 바디워시 500ml", productCode: "BH005", brandId: 5, price: 16000, stockQuantity: 140, thumbnailImageUrl: "", detailDescription: "보습 바디워시", isSample: true, samplePrice: 550, categoryId: 1 },
+      { name: "퓨어딥 바디로션 300ml", productCode: "BH006", brandId: 6, price: 22000, stockQuantity: 100, thumbnailImageUrl: "", detailDescription: "수분 바디로션", isSample: true, samplePrice: 750, categoryId: 1 },
+      { name: "아쿠아하이드 핸드크림 50ml", productCode: "BH007", brandId: 7, price: 12000, stockQuantity: 160, thumbnailImageUrl: "", detailDescription: "보습 핸드크림", isSample: true, samplePrice: 400, categoryId: 1 },
+      { name: "로지스킨 바디스크럽 200ml", productCode: "BH008", brandId: 8, price: 19000, stockQuantity: 110, thumbnailImageUrl: "", detailDescription: "각질제거 스크럽", isSample: true, samplePrice: 650, categoryId: 1 },
+      { name: "피토베라 헤어에센스 80ml", productCode: "BH009", brandId: 9, price: 28000, stockQuantity: 85, thumbnailImageUrl: "", detailDescription: "모발 끝 에센스", isSample: true, samplePrice: 950, categoryId: 1 },
+      { name: "오가닉테라 드라이샴푸 150ml", productCode: "BH010", brandId: 10, price: 15000, stockQuantity: 130, thumbnailImageUrl: "", detailDescription: "물 없는 샴푸", isSample: true, samplePrice: 500, categoryId: 1 },
+      { name: "에버블룸 헤어미스트 100ml", productCode: "BH011", brandId: 1, price: 14000, stockQuantity: 120, thumbnailImageUrl: "", detailDescription: "향기 헤어미스트", isSample: true, samplePrice: 500, categoryId: 1 },
+      { name: "블루허브 바디밤 150ml", productCode: "BH012", brandId: 2, price: 24000, stockQuantity: 95, thumbnailImageUrl: "", detailDescription: "진정 바디밤", isSample: true, samplePrice: 800, categoryId: 1 },
+      { name: "루나화이트 헤어마스크 250ml", productCode: "BH013", brandId: 3, price: 30000, stockQuantity: 75, thumbnailImageUrl: "", detailDescription: "집중 헤어마스크", isSample: false, samplePrice: 1000, categoryId: 1 },
+      { name: "네이처소울 풋크림 100ml", productCode: "BH014", brandId: 4, price: 16000, stockQuantity: 125, thumbnailImageUrl: "", detailDescription: "발 전용 크림", isSample: true, samplePrice: 550, categoryId: 1 },
+      { name: "그린필드 바디오일 150ml", productCode: "BH015", brandId: 5, price: 26000, stockQuantity: 80, thumbnailImageUrl: "", detailDescription: "영양 바디오일", isSample: true, samplePrice: 900, categoryId: 1 },
+      { name: "퓨어딥 헤어세럼 60ml", productCode: "BH016", brandId: 6, price: 22000, stockQuantity: 100, thumbnailImageUrl: "", detailDescription: "윤기 헤어세럼", isSample: true, samplePrice: 750, categoryId: 1 },
+      { name: "아쿠아하이드 바디미스트 200ml", productCode: "BH017", brandId: 7, price: 18000, stockQuantity: 110, thumbnailImageUrl: "", detailDescription: "시원한 바디미스트", isSample: true, samplePrice: 600, categoryId: 1 },
+      { name: "로지스킨 네일케어오일 15ml", productCode: "BH018", brandId: 8, price: 12000, stockQuantity: 140, thumbnailImageUrl: "", detailDescription: "네일 영양오일", isSample: true, samplePrice: 400, categoryId: 1 },
+      { name: "피토베라 바디버터 200ml", productCode: "BH019", brandId: 9, price: 20000, stockQuantity: 105, thumbnailImageUrl: "", detailDescription: "진한 바디버터", isSample: true, samplePrice: 700, categoryId: 1 },
+      { name: "오가닉테라 스칼프케어 100ml", productCode: "BH020", brandId: 10, price: 25000, stockQuantity: 90, thumbnailImageUrl: "", detailDescription: "두피 케어 제품", isSample: true, samplePrice: 850, categoryId: 1 },
+    ],
+  });
+
+  // 🎨 뷰티 - 미용소품 (BT) 20개
+  await prisma.product.createMany({
+    data: [
+      { name: "에버블룸 화장솜 80매", productCode: "BT001", brandId: 1, price: 5000, stockQuantity: 200, thumbnailImageUrl: "", detailDescription: "부드러운 화장솜", isSample: false, samplePrice: null, categoryId: 1 },
+      { name: "블루허브 메이크업브러시세트", productCode: "BT002", brandId: 2, price: 35000, stockQuantity: 60, thumbnailImageUrl: "", detailDescription: "전문가용 브러시세트", isSample: false, samplePrice: null, categoryId: 1 },
+      { name: "루나화이트 뷰러", productCode: "BT003", brandId: 3, price: 8000, stockQuantity: 150, thumbnailImageUrl: "", detailDescription: "컬링 뷰러", isSample: false, samplePrice: null, categoryId: 1 },
+      { name: "네이처소울 스펀지퍼프 10개", productCode: "BT004", brandId: 4, price: 6000, stockQuantity: 180, thumbnailImageUrl: "", detailDescription: "메이크업 스펀지", isSample: false, samplePrice: null, categoryId: 1 },
+      { name: "그린필드 헤어밴드", productCode: "BT005", brandId: 5, price: 4000, stockQuantity: 220, thumbnailImageUrl: "", detailDescription: "세안용 헤어밴드", isSample: false, samplePrice: null, categoryId: 1 },
+      { name: "퓨어딥 거울 휴대용", productCode: "BT006", brandId: 6, price: 12000, stockQuantity: 100, thumbnailImageUrl: "", detailDescription: "접이식 휴대거울", isSample: false, samplePrice: null, categoryId: 1 },
+      { name: "아쿠아하이드 핀셋", productCode: "BT007", brandId: 7, price: 7000, stockQuantity: 160, thumbnailImageUrl: "", detailDescription: "정밀 핀셋", isSample: false, samplePrice: null, categoryId: 1 },
+      { name: "로지스킨 면봉 100개", productCode: "BT008", brandId: 8, price: 3000, stockQuantity: 250, thumbnailImageUrl: "", detailDescription: "화장용 면봉", isSample: false, samplePrice: null, categoryId: 1 },
+      { name: "피토베라 헤어클립 5개", productCode: "BT009", brandId: 9, price: 8000, stockQuantity: 140, thumbnailImageUrl: "", detailDescription: "헤어 고정 클립", isSample: false, samplePrice: null, categoryId: 1 },
+      { name: "오가닉테라 마사지롤러", productCode: "BT010", brandId: 10, price: 15000, stockQuantity: 90, thumbnailImageUrl: "", detailDescription: "페이스 마사지롤러", isSample: false, samplePrice: null, categoryId: 1 },
+      { name: "에버블룸 브러시클리너 100ml", productCode: "BT011", brandId: 1, price: 10000, stockQuantity: 120, thumbnailImageUrl: "", detailDescription: "브러시 세정제", isSample: true, samplePrice: 350, categoryId: 1 },
+      { name: "블루허브 네일파일", productCode: "BT012", brandId: 2, price: 5000, stockQuantity: 180, thumbnailImageUrl: "", detailDescription: "네일 정리 도구", isSample: false, samplePrice: null, categoryId: 1 },
+      { name: "루나화이트 립브러시", productCode: "BT013", brandId: 3, price: 6000, stockQuantity: 140, thumbnailImageUrl: "", detailDescription: "립 전용 브러시", isSample: false, samplePrice: null, categoryId: 1 },
+      { name: "네이처소울 아이패치 60매", productCode: "BT014", brandId: 4, price: 18000, stockQuantity: 80, thumbnailImageUrl: "", detailDescription: "하이드로겔 아이패치", isSample: true, samplePrice: 600, categoryId: 1 },
+      { name: "그린필드 세안타월 5매", productCode: "BT015", brandId: 5, price: 12000, stockQuantity: 110, thumbnailImageUrl: "", detailDescription: "극세사 세안타월", isSample: false, samplePrice: null, categoryId: 1 },
+      { name: "퓨어딥 실리콘마스크", productCode: "BT016", brandId: 6, price: 8000, stockQuantity: 130, thumbnailImageUrl: "", detailDescription: "재사용 실리콘마스크", isSample: false, samplePrice: null, categoryId: 1 },
+      { name: "아쿠아하이드 화장품파우치", productCode: "BT017", brandId: 7, price: 15000, stockQuantity: 95, thumbnailImageUrl: "", detailDescription: "방수 화장품파우치", isSample: false, samplePrice: null, categoryId: 1 },
+      { name: "로지스킨 족집게", productCode: "BT018", brandId: 8, price: 4000, stockQuantity: 200, thumbnailImageUrl: "", detailDescription: "눈썹정리 족집게", isSample: false, samplePrice: null, categoryId: 1 },
+      { name: "피토베라 실리콘브러시", productCode: "BT019", brandId: 9, price: 7000, stockQuantity: 150, thumbnailImageUrl: "", detailDescription: "세안용 실리콘브러시", isSample: false, samplePrice: null, categoryId: 1 },
+      { name: "오가닉테라 컬러팔레트", productCode: "BT020", brandId: 10, price: 20000, stockQuantity: 70, thumbnailImageUrl: "", detailDescription: "메이크업 믹싱팔레트", isSample: false, samplePrice: null, categoryId: 1 },
+    ],
+  });
+   await prisma.product.createMany({
+    data: [
+      { name: "헬시밀 단백질쉐이크 30포", productCode: "FM001", brandId: 11, price: 45000, stockQuantity: 80, thumbnailImageUrl: "", detailDescription: "고단백 쉐이크", isSample: true, samplePrice: 1500, categoryId: 2 },
+      { name: "네이처푸드 그래놀라 500g", productCode: "FM002", brandId: 12, price: 18000, stockQuantity: 120, thumbnailImageUrl: "", detailDescription: "유기농 그래놀라", isSample: true, samplePrice: 600, categoryId: 2 },
+      { name: "바이탈웰 스무디팩 12개", productCode: "FM003", brandId: 13, price: 28000, stockQuantity: 100, thumbnailImageUrl: "", detailDescription: "냉동 스무디팩", isSample: false, samplePrice: 950, categoryId: 2 },
+      { name: "오가닉키친 즉석밥 10개", productCode: "FM004", brandId: 14, price: 25000, stockQuantity: 90, thumbnailImageUrl: "", detailDescription: "유기농 즉석밥", isSample: true, samplePrice: 850, categoryId: 2 },
+      { name: "퓨어라이프 수프 6개", productCode: "FM005", brandId: 15, price: 22000, stockQuantity: 110, thumbnailImageUrl: "", detailDescription: "영양 수프세트", isSample: true, samplePrice: 750, categoryId: 2 },
+      { name: "헬시밀 에너지바 12개", productCode: "FM006", brandId: 11, price: 15000, stockQuantity: 140, thumbnailImageUrl: "", detailDescription: "견과류 에너지바", isSample: true, samplePrice: 500, categoryId: 2 },
+      { name: "네이처푸드 퀴노아볼 8개", productCode: "FM007", brandId: 12, price: 32000, stockQuantity: 70, thumbnailImageUrl: "", detailDescription: "퀴노아 도시락", isSample: false, samplePrice: 1100, categoryId: 2 },
+      { name: "바이탈웰 오트밀 1kg", productCode: "FM008", brandId: 13, price: 12000, stockQuantity: 160, thumbnailImageUrl: "", detailDescription: "유기농 오트밀", isSample: true, samplePrice: 400, categoryId: 2 },
+      { name: "오가닉키친 샐러드 5개", productCode: "FM009", brandId: 14, price: 20000, stockQuantity: 80, thumbnailImageUrl: "", detailDescription: "신선한 샐러드", isSample: false, samplePrice: 700, categoryId: 2 },
+      { name: "퓨어라이프 치아시드푸딩 6개", productCode: "FM010", brandId: 15, price: 18000, stockQuantity: 95, thumbnailImageUrl: "", detailDescription: "치아시드 푸딩", isSample: true, samplePrice: 600, categoryId: 2 },
+    ],
+  });
+
+  // 🍎 푸드 - 헬스케어 제품 (FH) 10개
+  await prisma.product.createMany({
+    data: [
+      { name: "헬시밀 프로바이오틱스 30캡슐", productCode: "FH001", brandId: 11, price: 35000, stockQuantity: 100, thumbnailImageUrl: "", detailDescription: "장 건강 유산균", isSample: true, samplePrice: 1200, categoryId: 2 },
+      { name: "네이처푸드 오메가3 60캡슐", productCode: "FH002", brandId: 12, price: 28000, stockQuantity: 120, thumbnailImageUrl: "", detailDescription: "고순도 오메가3", isSample: true, samplePrice: 950, categoryId: 2 },
+      { name: "바이탈웰 멀티비타민 90정", productCode: "FH003", brandId: 13, price: 25000, stockQuantity: 110, thumbnailImageUrl: "", detailDescription: "종합비타민", isSample: true, samplePrice: 850, categoryId: 2 },
+      { name: "오가닉키친 콜라겐 분말 300g", productCode: "FH004", brandId: 14, price: 42000, stockQuantity: 80, thumbnailImageUrl: "", detailDescription: "해양 콜라겐", isSample: true, samplePrice: 1400, categoryId: 2 },
+      { name: "퓨어라이프 마그네슘 60정", productCode: "FH005", brandId: 15, price: 18000, stockQuantity: 140, thumbnailImageUrl: "", detailDescription: "킬레이트 마그네슘", isSample: true, samplePrice: 600, categoryId: 2 },
+      { name: "헬시밀 글루코사민 120정", productCode: "FH006", brandId: 11, price: 32000, stockQuantity: 90, thumbnailImageUrl: "", detailDescription: "관절 건강", isSample: true, samplePrice: 1100, categoryId: 2 },
+      { name: "네이처푸드 아연 60정", productCode: "FH007", brandId: 12, price: 15000, stockQuantity: 150, thumbnailImageUrl: "", detailDescription: "면역력 아연", isSample: true, samplePrice: 500, categoryId: 2 },
+      { name: "바이탈웰 비타민D 90정", productCode: "FH008", brandId: 13, price: 20000, stockQuantity: 130, thumbnailImageUrl: "", detailDescription: "고함량 비타민D", isSample: true, samplePrice: 700, categoryId: 2 },
+      { name: "오가닉키친 루테인 60캡슐", productCode: "FH009", brandId: 14, price: 30000, stockQuantity: 100, thumbnailImageUrl: "", detailDescription: "눈 건강 루테인", isSample: true, samplePrice: 1000, categoryId: 2 },
+      { name: "퓨어라이프 밀크씨슬 90정", productCode: "FH010", brandId: 15, price: 26000, stockQuantity: 110, thumbnailImageUrl: "", detailDescription: "간 건강 밀크씨슬", isSample: true, samplePrice: 900, categoryId: 2 },
+    ],
+  });
+
+  // 🍎 푸드 - 건강식품 제품 (FC) 10개
+  await prisma.product.createMany({
+    data: [
+      { name: "헬시밀 홍삼농축액 30포", productCode: "FC001", brandId: 11, price: 58000, stockQuantity: 60, thumbnailImageUrl: "", detailDescription: "6년근 홍삼", isSample: true, samplePrice: 1950, categoryId: 2 },
+      { name: "네이처푸드 마누카꿀 500g", productCode: "FC002", brandId: 12, price: 65000, stockQuantity: 50, thumbnailImageUrl: "", detailDescription: "뉴질랜드 마누카꿀", isSample: true, samplePrice: 2200, categoryId: 2 },
+      { name: "바이탈웰 프로폴리스 30ml", productCode: "FC003", brandId: 13, price: 35000, stockQuantity: 80, thumbnailImageUrl: "", detailDescription: "브라질 프로폴리스", isSample: true, samplePrice: 1200, categoryId: 2 },
+      { name: "오가닉키친 석류농축액 50ml", productCode: "FC004", brandId: 14, price: 28000, stockQuantity: 90, thumbnailImageUrl: "", detailDescription: "터키산 석류", isSample: true, samplePrice: 950, categoryId: 2 },
+      { name: "퓨어라이프 노니주스 500ml", productCode: "FC005", brandId: 15, price: 32000, stockQuantity: 70, thumbnailImageUrl: "", detailDescription: "타히티 노니", isSample: true, samplePrice: 1100, categoryId: 2 },
+      { name: "헬시밀 도라지배즙 50포", productCode: "FC006", brandId: 11, price: 45000, stockQuantity: 75, thumbnailImageUrl: "", detailDescription: "기관지 건강", isSample: true, samplePrice: 1500, categoryId: 2 },
+      { name: "네이처푸드 알로에겔 500ml", productCode: "FC007", brandId: 12, price: 22000, stockQuantity: 100, thumbnailImageUrl: "", detailDescription: "순수 알로에", isSample: true, samplePrice: 750, categoryId: 2 },
+      { name: "바이탈웰 양파즙 30포", productCode: "FC008", brandId: 13, price: 18000, stockQuantity: 120, thumbnailImageUrl: "", detailDescription: "혈관 건강", isSample: true, samplePrice: 600, categoryId: 2 },
+      { name: "오가닉키친 흑마늘 60정", productCode: "FC009", brandId: 14, price: 25000, stockQuantity: 95, thumbnailImageUrl: "", detailDescription: "발효 흑마늘", isSample: true, samplePrice: 850, categoryId: 2 },
+      { name: "퓨어라이프 매실엑기스 500ml", productCode: "FC010", brandId: 15, price: 30000, stockQuantity: 85, thumbnailImageUrl: "", detailDescription: "소화 건강", isSample: true, samplePrice: 1000, categoryId: 2 },
+    ],
+  });
+
+  // 🍎 푸드 - 간식/디저트 (FD) 10개
+  await prisma.product.createMany({
+    data: [
+      { name: "헬시밀 견과류믹스 300g", productCode: "FD001", brandId: 11, price: 15000, stockQuantity: 140, thumbnailImageUrl: "", detailDescription: "프리미엄 견과류", isSample: true, samplePrice: 500, categoryId: 2 },
+      { name: "네이처푸드 드라이프루트 200g", productCode: "FD002", brandId: 12, price: 12000, stockQuantity: 160, thumbnailImageUrl: "", detailDescription: "무첨가 건과일", isSample: true, samplePrice: 400, categoryId: 2 },
+      { name: "바이탈웰 다크초콜릿 100g", productCode: "FD003", brandId: 13, price: 8000, stockQuantity: 180, thumbnailImageUrl: "", detailDescription: "70% 다크초콜릿", isSample: true, samplePrice: 300, categoryId: 2 },
+      { name: "오가닉키친 쌀과자 150g", productCode: "FD004", brandId: 14, price: 6000, stockQuantity: 200, thumbnailImageUrl: "", detailDescription: "유기농 쌀과자", isSample: true, samplePrice: 200, categoryId: 2 },
+      { name: "퓨어라이프 케이크 500g", productCode: "FD005", brandId: 15, price: 25000, stockQuantity: 50, thumbnailImageUrl: "", detailDescription: "무설탕 케이크", isSample: false, samplePrice: 850, categoryId: 2 },
+      { name: "헬시밀 단백질쿠키 12개", productCode: "FD006", brandId: 11, price: 18000, stockQuantity: 120, thumbnailImageUrl: "", detailDescription: "고단백 쿠키", isSample: true, samplePrice: 600, categoryId: 2 },
+      { name: "네이처푸드 아이스크림 1L", productCode: "FD007", brandId: 12, price: 22000, stockQuantity: 80, thumbnailImageUrl: "", detailDescription: "무첨가 아이스크림", isSample: false, samplePrice: 750, categoryId: 2 },
+      { name: "바이탈웰 젤리 200g", productCode: "FD008", brandId: 13, price: 10000, stockQuantity: 150, thumbnailImageUrl: "", detailDescription: "콜라겐 젤리", isSample: true, samplePrice: 350, categoryId: 2 },
+      { name: "오가닉키친 요거트 6개", productCode: "FD009", brandId: 14, price: 16000, stockQuantity: 100, thumbnailImageUrl: "", detailDescription: "그릭요거트", isSample: false, samplePrice: 550, categoryId: 2 },
+      { name: "퓨어라이프 푸딩 4개", productCode: "FD010", brandId: 15, price: 14000, stockQuantity: 110, thumbnailImageUrl: "", detailDescription: "수제 푸딩", isSample: false, samplePrice: 500, categoryId: 2 },
+    ],
+  });
+
+  console.log("🏠 리빙 제품 생성 중...");
+  
+  // 🏠 리빙 - 주방제품 (LK) 10개
+  await prisma.product.createMany({
+    data: [
+      { name: "홈스위트 머그컵 2개세트", productCode: "LK001", brandId: 16, price: 18000, stockQuantity: 100, thumbnailImageUrl: "", detailDescription: "세라믹 머그컵", isSample: false, samplePrice: null, categoryId: 3 },
+      { name: "리빙프로 식기세트 4인용", productCode: "LK002", brandId: 17, price: 45000, stockQuantity: 60, thumbnailImageUrl: "", detailDescription: "스테인리스 식기", isSample: false, samplePrice: null, categoryId: 3 },
+      { name: "데일리라이프 도마 3종세트", productCode: "LK003", brandId: 18, price: 25000, stockQuantity: 80, thumbnailImageUrl: "", detailDescription: "항균 도마세트", isSample: false, samplePrice: null, categoryId: 3 },
+      { name: "홈스위트 칼세트 5종", productCode: "LK004", brandId: 16, price: 35000, stockQuantity: 70, thumbnailImageUrl: "", detailDescription: "스테인리스 칼세트", isSample: false, samplePrice: null, categoryId: 3 },
+      { name: "리빙프로 팬 3종세트", productCode: "LK005", brandId: 17, price: 55000, stockQuantity: 50, thumbnailImageUrl: "", detailDescription: "코팅 프라이팬", isSample: false, samplePrice: null, categoryId: 3 },
+      { name: "데일리라이프 냄비 5종세트", productCode: "LK006", brandId: 18, price: 85000, stockQuantity: 40, thumbnailImageUrl: "", detailDescription: "스테인리스 냄비", isSample: false, samplePrice: null, categoryId: 3 },
+      { name: "홈스위트 믹서기", productCode: "LK007", brandId: 16, price: 65000, stockQuantity: 45, thumbnailImageUrl: "", detailDescription: "고속 믹서기", isSample: false, samplePrice: null, categoryId: 3 },
+      { name: "리빙프로 전자저울", productCode: "LK008", brandId: 17, price: 28000, stockQuantity: 90, thumbnailImageUrl: "", detailDescription: "디지털 저울", isSample: false, samplePrice: null, categoryId: 3 },
+      { name: "데일리라이프 밀폐용기 10종", productCode: "LK009", brandId: 18, price: 32000, stockQuantity: 75, thumbnailImageUrl: "", detailDescription: "유리 밀폐용기", isSample: false, samplePrice: null, categoryId: 3 },
+      { name: "홈스위트 커피머신", productCode: "LK010", brandId: 16, price: 125000, stockQuantity: 30, thumbnailImageUrl: "", detailDescription: "캡슐 커피머신", isSample: false, samplePrice: null, categoryId: 3 },
+    ],
+  });
+
+  // 🏠 리빙 - 생활 제품 (LD) 10개
+  await prisma.product.createMany({
+    data: [
+      { name: "홈스위트 수건세트 6장", productCode: "LD001", brandId: 16, price: 22000, stockQuantity: 120, thumbnailImageUrl: "", detailDescription: "면 100% 수건", isSample: false, samplePrice: null, categoryId: 3 },
+      { name: "리빙프로 베개 2개세트", productCode: "LD002", brandId: 17, price: 35000, stockQuantity: 80, thumbnailImageUrl: "", detailDescription: "메모리폼 베개", isSample: false, samplePrice: null, categoryId: 3 },
+      { name: "데일리라이프 이불세트", productCode: "LD003", brandId: 18, price: 55000, stockQuantity: 60, thumbnailImageUrl: "", detailDescription: "항균 이불세트", isSample: false, samplePrice: null, categoryId: 3 },
+      { name: "홈스위트 방향제 6개", productCode: "LD004", brandId: 16, price: 15000, stockQuantity: 140, thumbnailImageUrl: "", detailDescription: "천연 방향제", isSample: false, samplePrice: null, categoryId: 3 },
+      { name: "리빙프로 청소기", productCode: "LD005", brandId: 17, price: 85000, stockQuantity: 40, thumbnailImageUrl: "", detailDescription: "무선 청소기", isSample: false, samplePrice: null, categoryId: 3 },
+      { name: "데일리라이프 세제세트 3종", productCode: "LD006", brandId: 18, price: 18000, stockQuantity: 110, thumbnailImageUrl: "", detailDescription: "친환경 세제", isSample: true, samplePrice: 600, categoryId: 3 },
+      { name: "홈스위트 가습기", productCode: "LD007", brandId: 16, price: 45000, stockQuantity: 70, thumbnailImageUrl: "", detailDescription: "초음파 가습기", isSample: false, samplePrice: null, categoryId: 3 },
+      { name: "리빙프로 공기청정기", productCode: "LD008", brandId: 17, price: 125000, stockQuantity: 35, thumbnailImageUrl: "", detailDescription: "헤파필터 공기청정기", isSample: false, samplePrice: null, categoryId: 3 },
+      { name: "데일리라이프 슬리퍼 2족", productCode: "LD009", brandId: 18, price: 12000, stockQuantity: 150, thumbnailImageUrl: "", detailDescription: "항균 슬리퍼", isSample: false, samplePrice: null, categoryId: 3 },
+      { name: "홈스위트 캔들 4개세트", productCode: "LD010", brandId: 16, price: 20000, stockQuantity: 100, thumbnailImageUrl: "", detailDescription: "아로마 캔들", isSample: false, samplePrice: null, categoryId: 3 },
+    ],
+  });
+
+  console.log("🐕 펫 제품 생성 중...");
+  
+  // 🐕 펫 - 강아지 (PD) 10개
+  await prisma.product.createMany({
+    data: [
+      { name: "펫프렌즈 사료 3kg", productCode: "PD001", brandId: 19, price: 35000, stockQuantity: 80, thumbnailImageUrl: "", detailDescription: "전연령 강아지사료", isSample: true, samplePrice: 1200, categoryId: 4 },
+      { name: "해피펫 간식 500g", productCode: "PD002", brandId: 20, price: 18000, stockQuantity: 120, thumbnailImageUrl: "", detailDescription: "수제 강아지간식", isSample: true, samplePrice: 600, categoryId: 4 },
+      { name: "펫케어 목줄세트", productCode: "PD003", brandId: 21, price: 25000, stockQuantity: 100, thumbnailImageUrl: "", detailDescription: "조절 가능 목줄", isSample: false, samplePrice: null, categoryId: 4 },
+      { name: "펫프렌즈 방석 L사이즈", productCode: "PD004", brandId: 19, price: 22000, stockQuantity: 90, thumbnailImageUrl: "", detailDescription: "쿨링 방석", isSample: false, samplePrice: null, categoryId: 4 },
+      { name: "해피펫 샴푸 250ml", productCode: "PD005", brandId: 20, price: 15000, stockQuantity: 110, thumbnailImageUrl: "", detailDescription: "순한 강아지샴푸", isSample: true, samplePrice: 500, categoryId: 4 },
+      { name: "펫케어 이동가방", productCode: "PD006", brandId: 21, price: 45000, stockQuantity: 60, thumbnailImageUrl: "", detailDescription: "항공용 이동가방", isSample: false, samplePrice: null, categoryId: 4 },
+      { name: "펫프렌즈 급식기 2개세트", productCode: "PD007", brandId: 19, price: 12000, stockQuantity: 140, thumbnailImageUrl: "", detailDescription: "스테인리스 급식기", isSample: false, samplePrice: null, categoryId: 4 },
+      { name: "해피펫 칫솔세트", productCode: "PD008", brandId: 20, price: 8000, stockQuantity: 160, thumbnailImageUrl: "", detailDescription: "강아지 칫솔세트", isSample: false, samplePrice: null, categoryId: 4 },
+      { name: "펫케어 옷 3벌세트", productCode: "PD009", brandId: 21, price: 30000, stockQuantity: 70, thumbnailImageUrl: "", detailDescription: "겨울용 강아지옷", isSample: false, samplePrice: null, categoryId: 4 },
+      { name: "펫프렌즈 영양제 60정", productCode: "PD010", brandId: 19, price: 28000, stockQuantity: 85, thumbnailImageUrl: "", detailDescription: "관절 건강 영양제", isSample: true, samplePrice: 950, categoryId: 4 },
+    ],
+  });
+
+  // 🐕 펫 - 고양이 (PC) 10개
+  await prisma.product.createMany({
+    data: [
+      { name: "펫프렌즈 고양이사료 2kg", productCode: "PC001", brandId: 19, price: 32000, stockQuantity: 85, thumbnailImageUrl: "", detailDescription: "전연령 고양이사료", isSample: true, samplePrice: 1100, categoryId: 4 },
+      { name: "해피펫 캣간식 300g", productCode: "PC002", brandId: 20, price: 15000, stockQuantity: 130, thumbnailImageUrl: "", detailDescription: "동결건조 간식", isSample: true, samplePrice: 500, categoryId: 4 },
+      { name: "펫케어 스크래처", productCode: "PC003", brandId: 21, price: 18000, stockQuantity: 110, thumbnailImageUrl: "", detailDescription: "골판지 스크래처", isSample: false, samplePrice: null, categoryId: 4 },
+      { name: "펫프렌즈 캣타워", productCode: "PC004", brandId: 19, price: 65000, stockQuantity: 50, thumbnailImageUrl: "", detailDescription: "3단 캣타워", isSample: false, samplePrice: null, categoryId: 4 },
+      { name: "해피펫 모래 10L", productCode: "PC005", brandId: 20, price: 20000, stockQuantity: 90, thumbnailImageUrl: "", detailDescription: "응고형 모래", isSample: true, samplePrice: 700, categoryId: 4 },
+      { name: "펫케어 화장실", productCode: "PC006", brandId: 21, price: 28000, stockQuantity: 80, thumbnailImageUrl: "", detailDescription: "후드형 화장실", isSample: false, samplePrice: null, categoryId: 4 },
+      { name: "펫프렌즈 캣그라스 5포트", productCode: "PC007", brandId: 19, price: 12000, stockQuantity: 140, thumbnailImageUrl: "", detailDescription: "신선한 캣그라스", isSample: false, samplePrice: null, categoryId: 4 },
+      { name: "해피펫 털관리 브러시", productCode: "PC008", brandId: 20, price: 10000, stockQuantity: 150, thumbnailImageUrl: "", detailDescription: "셀프클리닝 브러시", isSample: false, samplePrice: null, categoryId: 4 },
+      { name: "펫케어 하네스", productCode: "PC009", brandId: 21, price: 22000, stockQuantity: 95, thumbnailImageUrl: "", detailDescription: "안전 하네스", isSample: false, samplePrice: null, categoryId: 4 },
+      { name: "펫프렌즈 헤어볼케어 100g", productCode: "PC010", brandId: 19, price: 16000, stockQuantity: 120, thumbnailImageUrl: "", detailDescription: "헤어볼 배출 간식", isSample: true, samplePrice: 550, categoryId: 4 },
+    ],
+  });
+
+  // 🐕 펫 - 장난감 (PT) 10개
+  await prisma.product.createMany({
+    data: [
+      { name: "펫프렌즈 로프토이 3개", productCode: "PT001", brandId: 19, price: 15000, stockQuantity: 120, thumbnailImageUrl: "", detailDescription: "면 로프 장난감", isSample: false, samplePrice: null, categoryId: 4 },
+      { name: "해피펫 스니핑매트", productCode: "PT002", brandId: 20, price: 18000, stockQuantity: 100, thumbnailImageUrl: "", detailDescription: "후각놀이 매트", isSample: false, samplePrice: null, categoryId: 4 },
+      { name: "펫케어 공 5개세트", productCode: "PT003", brandId: 21, price: 12000, stockQuantity: 140, thumbnailImageUrl: "", detailDescription: "고무공 세트", isSample: false, samplePrice: null, categoryId: 4 },
+      { name: "펫프렌즈 터그토이", productCode: "PT004", brandId: 19, price: 10000, stockQuantity: 160, thumbnailImageUrl: "", detailDescription: "줄다리기 장난감", isSample: false, samplePrice: null, categoryId: 4 },
+      { name: "해피펫 퍼즐토이", productCode: "PT005", brandId: 20, price: 25000, stockQuantity: 80, thumbnailImageUrl: "", detailDescription: "지능 개발 퍼즐", isSample: false, samplePrice: null, categoryId: 4 },
+      { name: "펫케어 삑삑이 3개", productCode: "PT006", brandId: 21, price: 8000, stockQuantity: 180, thumbnailImageUrl: "", detailDescription: "소리나는 장난감", isSample: false, samplePrice: null, categoryId: 4 },
+      { name: "펫프렌즈 캣완드", productCode: "PT007", brandId: 19, price: 6000, stockQuantity: 200, thumbnailImageUrl: "", detailDescription: "깃털 캣완드", isSample: false, samplePrice: null, categoryId: 4 },
+      { name: "해피펫 레이저포인터", productCode: "PT008", brandId: 20, price: 12000, stockQuantity: 130, thumbnailImageUrl: "", detailDescription: "자동 레이저포인터", isSample: false, samplePrice: null, categoryId: 4 },
+      { name: "펫케어 터널", productCode: "PT009", brandId: 21, price: 20000, stockQuantity: 90, thumbnailImageUrl: "", detailDescription: "접이식 터널", isSample: false, samplePrice: null, categoryId: 4 },
+      { name: "펫프렌즈 노즈워크매트", productCode: "PT010", brandId: 19, price: 22000, stockQuantity: 85, thumbnailImageUrl: "", detailDescription: "코 훈련 매트", isSample: false, samplePrice: null, categoryId: 4 },
+    ],
+  });
+
 
   // 쿠폰 5개 생성
   console.log("🎫 쿠폰 생성 중...");
@@ -131,7 +431,7 @@ async function main() {
   });
 
   console.log("✅ 시딩 완료!");
-
+  console.log("👥 유저 5명, 🏷️ 브랜드 5개, 🛍️ 제품 20개, 🎫 쿠폰 5개가 생성되었습니다!");
 }
 
 main()
