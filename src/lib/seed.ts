@@ -14,7 +14,21 @@ async function main() {
   await prisma.product.deleteMany({});
   await prisma.brand.deleteMany({});
   await prisma.category.deleteMany({});
-  
+
+  // 유저 생성
+  console.log("👤 유저 생성 중...");
+  const hashedPassword = await bcrypt.hash("User@1234", 10);
+
+  const usersData = Array.from({ length: 5 }, (_, i) => ({
+    email: `user${i + 1}@email.com`,
+    password: hashedPassword,
+    name: `유저${i + 1}`,
+  }));
+
+  await prisma.user.createMany({
+    data: usersData,
+  });
+
   // 브랜드 데이터 추가
   console.log("🏷️ 브랜드 생성 중...");
   await prisma.brand.createMany({
@@ -70,7 +84,7 @@ async function main() {
       {
         code: "WELCOME10",
         name: "신규 회원 10% 할인",
-        discountType: "PERCENTAGE", 
+        discountType: "PERCENTAGE",
         discountValue: 10,
         minOrderAmount: 30000,
         validFrom: new Date("2024-08-01"),
@@ -131,7 +145,6 @@ async function main() {
   });
 
   console.log("✅ 시딩 완료!");
-
 }
 
 main()
