@@ -6,11 +6,11 @@ import {
   signup,
 } from "../controllers/authController";
 
-const Authrouter = Router();
+const authRouter = Router();
 
-Authrouter.post("/signup", signup);
-Authrouter.post("/login", login);
-Authrouter.post("/refresh", refreshToken);
-Authrouter.post("/logout", logout);
+authRouter.post("/signup", signup);
+authRouter.post("/login", login);
+authRouter.post("/refresh", refreshToken);
+authRouter.post("/logout", logout);
 
-export default Authrouter;
+export default authRouter;
