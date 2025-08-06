@@ -21,7 +21,7 @@ productReviewRouter
 
 productReviewRouter
   .route("/:reviewId")
-  .put(authenticateJWT, updateProductReview)
+  .put(authenticateJWT, getSingleUploader("imageUrl"), updateProductReview)
   .delete(authenticateJWT, deleteProductReview);
 
 productReviewRouter
