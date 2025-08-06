@@ -4,12 +4,66 @@ import bcrypt from "bcrypt";
 async function main() {
   console.log("🌱 시딩 시작...");
 
-
-  // 기존 쿠폰 삭제 후 새로 생성
-  console.log("🗑️ 기존 쿠폰 삭제 중...");
+  // 기존 데이터 삭제 (순서 중요: 외래키 제약조건 때문에)
+  console.log("🗑️ 기존 데이터 삭제 중...");
+  await prisma.userCoupon.deleteMany({});
   await prisma.coupon.deleteMany({});
+  await prisma.orderItem.deleteMany({});
+  await prisma.order.deleteMany({});
+  await prisma.cart.deleteMany({});
+  await prisma.product.deleteMany({});
+  await prisma.brand.deleteMany({});
+  await prisma.category.deleteMany({});
   
-  // 5. 쿠폰 5개 생성
+  // 브랜드 데이터 추가
+  console.log("🏷️ 브랜드 생성 중...");
+  await prisma.brand.createMany({
+    data: [
+      { name: "에버블룸" },
+      { name: "블루허브" },
+      { name: "루나화이트" },
+      { name: "네이처소울" },
+      { name: "그린필드" },
+      { name: "퓨어딥" },
+      { name: "아쿠아하이드" },
+      { name: "로지스킨" },
+      { name: "피토베라" },
+      { name: "오가닉테라" },
+    ],
+  });
+
+  // 상품 데이터 추가
+  console.log("📦 상품 생성 중...");
+  await prisma.product.createMany({
+    data: [
+      {
+        name: "에버블룸 수분크림 50ml",
+        productCode: "PRD1001",
+        brandId: 1,
+        price: 28000,
+        stockQuantity: 100,
+        thumbnailImageUrl: "",
+        detailDescription: "피부 깊숙이 수분을 채워주는 고보습 크림",
+        isSample: false,
+        samplePrice: 1000,
+        categoryId: 1,
+      },
+      {
+        name: "에버블룸 클렌징폼",
+        productCode: "PRD1002",
+        brandId: 1,
+        price: 15000,
+        stockQuantity: 150,
+        thumbnailImageUrl: "",
+        detailDescription: "자극 없이 세정력 좋은 클렌징폼",
+        isSample: true,
+        samplePrice: 500,
+        categoryId: 1,
+      },
+    ],
+  });
+
+  // 쿠폰 5개 생성
   console.log("🎫 쿠폰 생성 중...");
   await prisma.coupon.createMany({
     data: [

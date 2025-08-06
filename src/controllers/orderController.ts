@@ -11,60 +11,109 @@ export const createOrder = async (req: UserRequest, res: Response) => {
     return res.status(401).json({ message: COMMON_ERROR.UNAUTHORIZED });
   }
 
-  const { shippingAddressId, paymentMethod, deliveryMessage } = req.body;
-  try {
-    // 유저의 장바구니 불러오기
-    const cartItems = await prisma.cart.findMany({
-      where: { userId },
-      include: { product: true },
-    });
+  console.log('주문 생성 요청 데이터:', req.body);
 
-    if (cartItems.length === 0) {
+  const { 
+    items, 
+    totalAmount, 
+    shippingAddress, 
+    recipientName, 
+    recipientPhone, 
+    ordererName, 
+    ordererPhone, 
+    ordererEmail, 
+    couponId, 
+    discountAmount,
+    paymentMethod = "토스페이먼츠",
+    deliveryMessage = ""
+  } = req.body;
+
+  try {
+    if (!items || items.length === 0) {
       return res.status(400).json({ message: ORDER_ERROR.EMPTY_CART });
     }
 
-    // 총액 계산
-    const itemsTotal = cartItems.reduce((sum, item) => {
-      return sum + item.quantity * Number(item.product.price);
-    }, 0);
+        // 주소 생성 (또는 기존 주소 찾기)
+    let addressId: number;
+    const existingAddress = await prisma.address.findFirst({
+      where: {
+        userId: userId,
+        recipientName: recipientName,
+        recipientPhone: recipientPhone,
+      }
+    });
 
-    const shippingFee = 3000; // 고정 배송비
-    const totalAmount = itemsTotal + shippingFee;
+    if (existingAddress) {
+      addressId = existingAddress.id;
+    } else {
+      const newAddress = await prisma.address.create({
+        data: {
+          userId,
+          recipientName,
+          recipientPhone,
+          addressLine1: shippingAddress.roadAddress,
+          addressLine2: shippingAddress.detailAddress,
+          postCode: shippingAddress.zipCode,
+          isDefault: false,
+        }
+      });
+      addressId = newAddress.id;
+    }
 
     // 주문 생성
     const newOrder = await prisma.order.create({
       data: {
         userId,
-        shippingAddressId,
-
+        shippingAddressId: addressId,
         paymentMethod,
-        paymentStatus: "결제대기",
+        paymentStatus: "결제완료",
         deliveryMessage,
         totalAmount,
-        shippingFee,
+        shippingFee: 3000, // 고정 배송비
         orderNumber: `ORD-${Date.now()}`, // timestamp 기반 주문번호
+        couponId,
         orderItems: {
-          create: cartItems.map((item) => ({
+          create: items.map((item: any) => ({
             productId: item.productId,
             quantity: item.quantity,
-            priceAtPurchase: item.product.price,
+            priceAtPurchase: item.price,
           })),
         },
       },
       include: {
-        orderItems: true,
+        orderItems: {
+          include: {
+            product: {
+              include: {
+                brand: true,
+              },
+            },
+          },
+        },
       },
     });
 
-    // 장바구니 비우기
-    await prisma.cart.deleteMany({ where: { userId } });
+    // 주문된 상품들을 장바구니에서 제거
+    const cartItemIds = items.map((item: any) => item.cartItemId).filter(Boolean);
+    if (cartItemIds.length > 0) {
+      await prisma.cart.deleteMany({
+        where: {
+          id: { in: cartItemIds },
+          userId: userId
+        }
+      });
+    }
 
     return res
       .status(201)
       .json({ message: ORDER_SUCCESS.CREATE, data: newOrder });
   } catch (error) {
     console.error("주문 생성 실패,", error);
-    return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
+    console.error("요청 데이터:", req.body);
+    return res.status(500).json({ 
+      message: COMMON_ERROR.SERVER_ERROR,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 };
 
