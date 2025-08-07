@@ -50,7 +50,7 @@ export const createProductReview = async (req: UserRequest, res: Response) => {
   }
 
   const productId = Number(req.params.id);
-  const { rating, reviewText,orderItemId } = req.body;
+  const { rating, reviewText, orderItemId } = req.body;
   let imageUrl: string | null = null;
   if (req.file) {
     imageUrl = `${req.protocol}://${req.get("host")}/uploads/${
@@ -62,7 +62,7 @@ export const createProductReview = async (req: UserRequest, res: Response) => {
       data: {
         rating: Number(rating),
         reviewText,
-        orderItemId :Number(orderItemId),
+        orderItemId: Number(orderItemId),
         productId,
         userId,
         imageUrl,
@@ -99,13 +99,17 @@ export const updateProductReview = async (req: UserRequest, res: Response) => {
         .json({ message: REVIEW_ERROR.NOT_FOUND_OR_UNAUTHORIZED });
     }
 
-    // 리뷰 업데이트
+    const imageUrl = req.file
+      ? `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`
+      : review.imageUrl;
+
     const updateReview = await prisma.review.update({
       where: { id: reviewId },
       data: {
-        // put을 patch처럼 업데이트(리소스를 모두 변경하지 않고, 변경하고 싶은 것만 변경하도록)
-        // 유효성 검사 해야함
-        ...req.body,
+        rating: Number(req.body.rating),
+        reviewText: req.body.reviewText,
+        orderItemId: Number(req.body.orderItemId),
+        imageUrl,
       },
     });
     return res.status(200).json({
@@ -118,7 +122,7 @@ export const updateProductReview = async (req: UserRequest, res: Response) => {
   }
 };
 
-// 상품 리뷰 삭제하기
+// 상품 리뷰 삭제하기 (sofe-delete)
 export const deleteProductReview = async (req: UserRequest, res: Response) => {
   const userId = req.user?.id;
   if (!userId) {
@@ -129,8 +133,9 @@ export const deleteProductReview = async (req: UserRequest, res: Response) => {
   const reviewId = Number(req.params.reviewId);
 
   try {
-    await prisma.review.delete({
-      where: { id: reviewId, productId },
+    await prisma.review.update({
+      where: { id: reviewId },
+      data: { isDeleted: true },
     });
     return res.sendStatus(204);
   } catch (error) {

@@ -145,48 +145,6 @@ export const createProduct = async (req: Request, res: Response) => {
   }
 };
 
-// export const getAllProduct = async (req: Request, res: Response) => {
-//   try {
-//     // 정렬기준, page 당 보여줄 부분 수정 해야함
-//     const { category, productCode } = req.query;
-
-//     let whereClause: Prisma.ProductWhereInput = {};
-
-//     // 카테고리 필터링
-//     if (category && category !== "all") {
-//       whereClause = {
-//         category: {
-//           slug: category as string,
-//         },
-//       };
-//     }
-
-//     if (productCode && typeof productCode === "string") {
-//       whereClause.productCode = {
-//         startsWith: productCode,
-//       };
-//     }
-
-//     const findAllProduct = await prisma.product.findMany({
-//       where: whereClause,
-//       include: {
-//         brand: true,
-//         category: true,
-//       },
-//     });
-
-//     console.log(findAllProduct);
-
-//     return res.status(200).json({
-//       message: PRODUCT_SUCCESS.LIST,
-//       products: findAllProduct,
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
-//   }
-// };
-
 type PopularProduct = {
   id: number;
   name: string;
@@ -230,43 +188,6 @@ export const getAllProduct = async (req: Request, res: Response) => {
     // 인기순일 때 raw query로 처리
     if (sort === "popularity") {
       const offset = (pageNumber - 1) * limitNumber;
-
-      // const popularProductsRaw = await prisma.$queryRaw<PopularProduct[]>(
-      //   Prisma.sql`
-      //     SELECT p.*, COALESCE(SUM(oi.quantity), 0) AS "purchaseCount"
-      //     FROM "Product" p
-      //     LEFT JOIN "OrderItem" oi ON p.id = oi."productId"
-      //     WHERE
-      //       (
-      //         ${
-      //           category === "all" ? Prisma.sql`NULL` : Prisma.sql`${category}`
-      //         }::text IS NULL
-      //         OR p."categoryId" = (
-      //           SELECT id FROM "Category" WHERE slug = ${
-      //             category === "all"
-      //               ? Prisma.sql`NULL`
-      //               : Prisma.sql`${category}`
-      //           }
-      //         )
-      //       )
-      //       AND (
-      //         ${
-      //           productCode ? Prisma.sql`${productCode}` : Prisma.sql`NULL`
-      //         }::text IS NULL
-      //         OR p."productCode" LIKE (${
-      //           productCode ? Prisma.sql`${productCode}` : Prisma.sql`NULL`
-      //         } || '%')
-      //       )
-      //     GROUP BY p.id
-      //     ORDER BY "purchaseCount" DESC
-      //     LIMIT ${limitNumber} OFFSET ${offset}
-      //   `
-      // );
-      // // BigInt 필드를 string으로 변환
-      // const popularProducts = popularProductsRaw.map((product) => ({
-      //   ...product,
-      //   purchaseCount: product.purchaseCount.toString(),
-      // }));
 
       // 인기순 id만 조회
       const popularIdsWithCount = await prisma.$queryRaw<
