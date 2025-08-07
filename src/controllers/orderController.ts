@@ -3,6 +3,7 @@ import { UserRequest } from "../types/expressUserRequest";
 import prisma from "../lib/prisma";
 import { COMMON_ERROR, ORDER_ERROR } from "../constants/errorMessage";
 import { ORDER_SUCCESS } from "../constants/successMessage";
+import { processCouponUsage } from "./couponController";
 
 // 주문 생성
 export const createOrder = async (req: UserRequest, res: Response) => {
@@ -22,7 +23,7 @@ export const createOrder = async (req: UserRequest, res: Response) => {
     ordererName, 
     ordererPhone, 
     ordererEmail, 
-    couponId, 
+    userCouponId, // couponId 대신 userCouponId 사용
     discountAmount,
     paymentMethod = "토스페이먼츠",
     deliveryMessage = ""
@@ -33,80 +34,121 @@ export const createOrder = async (req: UserRequest, res: Response) => {
       return res.status(400).json({ message: ORDER_ERROR.EMPTY_CART });
     }
 
-        // 주소 생성 (또는 기존 주소 찾기)
-    let addressId: number;
-    const existingAddress = await prisma.address.findFirst({
-      where: {
-        userId: userId,
-        recipientName: recipientName,
-        recipientPhone: recipientPhone,
-      }
-    });
-
-    if (existingAddress) {
-      addressId = existingAddress.id;
-    } else {
-      const newAddress = await prisma.address.create({
-        data: {
-          userId,
-          recipientName,
-          recipientPhone,
-          addressLine1: shippingAddress.roadAddress,
-          addressLine2: shippingAddress.detailAddress,
-          postCode: shippingAddress.zipCode,
-          isDefault: false,
+    // 트랜잭션으로 주문 생성과 쿠폰 사용을 원자적으로 처리
+    const result = await prisma.$transaction(async (tx) => {
+      // 주소 생성 (또는 기존 주소 찾기)
+      let addressId: number;
+      const existingAddress = await tx.address.findFirst({
+        where: {
+          userId: userId,
+          recipientName: recipientName,
+          recipientPhone: recipientPhone,
         }
       });
-      addressId = newAddress.id;
-    }
 
-    // 주문 생성
-    const newOrder = await prisma.order.create({
-      data: {
-        userId,
-        shippingAddressId: addressId,
-        paymentMethod,
-        paymentStatus: "결제완료",
-        deliveryMessage,
-        totalAmount,
-        shippingFee: 3000, // 고정 배송비
-        orderNumber: `ORD-${Date.now()}`, // timestamp 기반 주문번호
-        couponId,
-        orderItems: {
-          create: items.map((item: any) => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            priceAtPurchase: item.price,
-          })),
+      if (existingAddress) {
+        addressId = existingAddress.id;
+      } else {
+        const newAddress = await tx.address.create({
+          data: {
+            userId,
+            recipientName,
+            recipientPhone,
+            addressLine1: shippingAddress.roadAddress,
+            addressLine2: shippingAddress.detailAddress,
+            postCode: shippingAddress.zipCode,
+            isDefault: false,
+          }
+        });
+        addressId = newAddress.id;
+      }
+
+      // 주문 생성
+      const newOrder = await tx.order.create({
+        data: {
+          userId,
+          shippingAddressId: addressId,
+          paymentMethod,
+          paymentStatus: "결제완료",
+          deliveryMessage,
+          totalAmount,
+          shippingFee: 3000, // 고정 배송비
+          orderNumber: `ORD-${Date.now()}`, // timestamp 기반 주문번호
+          orderItems: {
+            create: items.map((item: any) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              priceAtPurchase: item.price,
+            })),
+          },
         },
-      },
-      include: {
-        orderItems: {
-          include: {
-            product: {
-              include: {
-                brand: true,
+        include: {
+          orderItems: {
+            include: {
+              product: {
+                include: {
+                  brand: true,
+                },
               },
             },
           },
         },
-      },
-    });
-
-    // 주문된 상품들을 장바구니에서 제거
-    const cartItemIds = items.map((item: any) => item.cartItemId).filter(Boolean);
-    if (cartItemIds.length > 0) {
-      await prisma.cart.deleteMany({
-        where: {
-          id: { in: cartItemIds },
-          userId: userId
-        }
       });
-    }
+
+      // 쿠폰 사용 처리
+      if (userCouponId) {
+        const userCoupon = await tx.userCoupon.findUnique({
+          where: { id: userCouponId },
+          include: { coupon: true }
+        });
+
+        if (!userCoupon || userCoupon.userId !== userId) {
+          throw new Error("쿠폰을 찾을 수 없거나 권한이 없습니다.");
+        }
+
+        if (userCoupon.isUsed) {
+          throw new Error("이미 사용된 쿠폰입니다.");
+        }
+
+        // 쿠폰 유효성 검증
+        if (!userCoupon.coupon.isActive || new Date() > userCoupon.coupon.validUntil) {
+          throw new Error("유효하지 않은 쿠폰입니다.");
+        }
+
+        // 쿠폰 사용 처리
+        await tx.userCoupon.update({
+          where: { id: userCouponId },
+          data: {
+            isUsed: true,
+            usedAt: new Date(),
+            orderId: newOrder.id,
+          },
+        });
+
+        // 주문에 쿠폰 정보 업데이트
+        await tx.order.update({
+          where: { id: newOrder.id },
+          data: { couponId: userCoupon.couponId },
+        });
+      }
+
+      // 주문된 상품들을 장바구니에서 제거
+      const cartItemIds = items.map((item: any) => item.cartItemId).filter(Boolean);
+      if (cartItemIds.length > 0) {
+        await tx.cart.deleteMany({
+          where: {
+            id: { in: cartItemIds },
+            userId: userId
+          }
+        });
+      }
+
+      return newOrder;
+    });
 
     return res
       .status(201)
-      .json({ message: ORDER_SUCCESS.CREATE, data: newOrder });
+      .json({ message: ORDER_SUCCESS.CREATE, data: result });
   } catch (error) {
     console.error("주문 생성 실패,", error);
     console.error("요청 데이터:", req.body);

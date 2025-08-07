@@ -8,6 +8,7 @@ import { AUTH_SUCCESS } from "../constants/successMessage";
 import { UserRequest } from "../types/expressUserRequest";
 import jwt from "jsonwebtoken";
 
+
 const SALT_ROUNDS = Number(process.env.SALT_ROUNDS || "10");
 
 export const signup: RequestHandler = async (req, res) => {
@@ -24,17 +25,44 @@ export const signup: RequestHandler = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
-    const newUser = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        name,
-      },
-    });
+    const result = await prisma.$transaction(async (tx) => {
+      const newUser = await prisma.user.create({
+        data: {
+          email,
+          password: hashedPassword,
+          name,
+        },
+      });
 
+      const welcomeCoupon = await tx.coupon.findFirst({
+        where : {
+          code: "FirstSignUp",
+          isActive: true,
+          validUntil : {
+            gte : new Date()
+          }
+        },
+      });
+
+      if (welcomeCoupon) {
+        await tx.userCoupon.create({
+          data : {
+            userId : newUser.id,
+            couponId : welcomeCoupon.id,
+            isUsed : false,
+          }
+        })
+      }
+
+      return {
+        newUser, welcomeCouponIssued: !!welcomeCoupon 
+      }
+    })
     return res
       .status(201)
-      .json({ message: AUTH_SUCCESS.SIGNUP, userId: newUser.id });
+      .json({  message: AUTH_SUCCESS.SIGNUP, 
+        userId: result.newUser.id,
+        welcomeCouponIssued: result.welcomeCouponIssued });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
