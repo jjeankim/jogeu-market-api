@@ -4,19 +4,20 @@ import { COMMON_ERROR, PRODUCT_ERROR } from "../constants/errorMessage";
 import { PRODUCT_SUCCESS } from "../constants/successMessage";
 import { Prisma } from "@prisma/client";
 
-const getBestProducts = async () => {
-  const limit = 4;
+const getBestProducts = async (limit: number = 4) => {
   const popularProductsWithCount = await prisma.$queryRaw<
     {
       id: number;
       salesCount: bigint;
     }[]
-  >(Prisma.sql`SELECT p.id, COALESCE(SUM(oi.quantity),0) AS "salesCount"
-      FROM "Proudct" p
+  >(Prisma.sql`
+    SELECT p.id, COALESCE(SUM(oi.quantity), 0) AS "salesCount"
+    FROM "Product" p
     LEFT JOIN "OrderItem" oi ON p.id = oi."productId"
     GROUP BY p.id
     ORDER BY "salesCount" DESC
-    LIMIT ${limit} `);
+    LIMIT ${limit}
+  `);
 
   const productIds = popularProductsWithCount.map((p) => p.id);
   const salesCountMap = new Map<number, string>(
@@ -32,6 +33,8 @@ const getBestProducts = async () => {
     ...product,
     salesCount: salesCountMap.get(product.id) ?? "0",
   }));
+
+  return result;
 };
 
 const getNewProducts = async (limit: number) => {
@@ -44,15 +47,29 @@ const getNewProducts = async (limit: number) => {
   return newProducts;
 };
 
-const getBrandProducts = async (brandId: number, limit: number) => {
-  const brandProducts = await prisma.product.findMany({
-    where: { brandId },
-    take: limit,
-    include: { brand: true, category: true },
-    orderBy: { createdAt: "desc" },
+const getBrandProductsByCategory = async (limit: number) => {
+  const categories = await prisma.category.findMany({
+    where: { isActive: true },
+    select: { id: true, name: true, slug: true },
   });
 
-  return brandProducts;
+  const brandProducts = await Promise.all(
+    categories.map(async (category) => {
+      const products = await prisma.product.findMany({
+        where: { categoryId: category.id },
+        take: limit,
+        orderBy: { createdAt: "desc" },
+        include: { brand: true, category: true },
+      });
+
+      return {
+        category: category.slug,
+        products,
+      };
+    })
+  );
+
+  return brandProducts.filter((item) => item.products.length > 0);
 };
 
 const getPickProducts = async (limit: number) => {
@@ -68,17 +85,37 @@ const getPickProducts = async (limit: number) => {
 
 export const getLandingProducts = async (req: Request, res: Response) => {
   try {
-    const bestProducts = await getBestProducts();
-    const brandProducts = await getBrandProducts();
-    const picKProducts = await getPickProducts();
-    // 임의값
-    const newProducts = await getNewProducts(5);
+    const {
+      pickLimit = "5",
+      newLimit = "10",
+      brandLimit = "5",
+      bestLimit = "10",
+    } = req.query;
+
+    const pickLimitNum = Number(pickLimit);
+    const newLimitNum = Number(newLimit);
+    const brandLimitNum = Number(brandLimit);
+    const bestLimitNum = Number(bestLimit);
+
+    const safePickLimit =
+      isNaN(pickLimitNum) || pickLimitNum < 1 ? 4 : pickLimitNum;
+    const safeNewLimit =
+      isNaN(newLimitNum) || newLimitNum < 1 ? 5 : newLimitNum;
+    const safeBrandLimit =
+      isNaN(brandLimitNum) || brandLimitNum < 1 ? 3 : brandLimitNum;
+    const safeBestLimit =
+      isNaN(bestLimitNum) || bestLimitNum < 1 ? 4 : bestLimitNum;
+
+    const bestProducts = await getBestProducts(safeBestLimit);
+    const newProducts = await getNewProducts(safeNewLimit);
+    const pickProducts = await getPickProducts(safePickLimit);
+    const brandProducts = await getBrandProductsByCategory(safeBrandLimit);
 
     return res.status(200).json({
       message: "Landing products fetched successfully",
       best: bestProducts,
       brand: brandProducts,
-      pick: picKProducts,
+      pick: pickProducts,
       new: newProducts,
     });
   } catch (error) {
