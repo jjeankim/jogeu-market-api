@@ -111,6 +111,18 @@ export const getLandingProducts = async (req: Request, res: Response) => {
     const pickProducts = await getPickProducts(safePickLimit);
     const brandProducts = await getBrandProductsByCategory(safeBrandLimit);
 
+    //     return res.status(200).json({
+    //       message: "Landing products fetched successfully",
+    //       best: bestProducts,
+    //       brand: brandProducts,
+    //       pick: picKProducts,
+    //       new: newProducts,
+    //     });
+    //   } catch (error) {
+    //     console.error(error);
+    //     return res.status(500).json({ message: "Server error" });
+    //   }
+    // };
     return res.status(200).json({
       message: "Landing products fetched successfully",
       best: bestProducts,
@@ -371,7 +383,6 @@ export const getOneProduct = async (req: Request, res: Response) => {
   }
 };
 
-
 export const getSearchProducts = async (req: Request, res: Response) => {
   try {
     const { query } = req.query;
@@ -395,6 +406,6 @@ export const getSearchProducts = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });  
+    return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };
