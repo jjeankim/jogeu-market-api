@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   createProduct,
   getAllProduct,
+  getLandingProducts,
   getOneProduct,
   getSearchProducts,
 } from "../controllers/productController";
@@ -9,6 +10,8 @@ import { getSingleUploader } from "../middleware/upload";
 import { authenticateJWT } from "../middleware/auth";
 
 const productRouter = Router();
+
+productRouter.get("/landing", getLandingProducts);
 
 productRouter
   .route("/")
