@@ -4,6 +4,7 @@ import {
   getAllProduct,
   getLandingProducts,
   getOneProduct,
+  getSearchProducts,
 } from "../controllers/productController";
 import { getSingleUploader } from "../middleware/upload";
 import { authenticateJWT } from "../middleware/auth";
@@ -16,6 +17,10 @@ productRouter
   .route("/")
   .post(authenticateJWT, getSingleUploader("thumbnailImageUrl"), createProduct)
   .get(getAllProduct);
+
+productRouter.get("/search", getSearchProducts);
+
+// productRouter.get("/", getBySubCategory);
 
 productRouter.get("/:id", getOneProduct);
 
