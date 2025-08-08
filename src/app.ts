@@ -7,7 +7,6 @@ import { swaggerSpec } from "./config/swagger";
 
 import dotenv from "dotenv";
 import authRouter from "./routes/authRouter";
-// import ProductRouter from "./routes/productRouter";
 import userRouter from "./routes/userRouter";
 import brandRouter from "./routes/brandRouter";
 import cartRouter from "./routes/cartRouter";
