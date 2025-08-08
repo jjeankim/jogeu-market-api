@@ -5,6 +5,9 @@ import {
   getLandingProducts,
   getOneProduct,
   getSearchProducts,
+  createProductQnA,
+  getProductQnA,
+  fetchProductAnswers,
 } from "../controllers/productController";
 import { getSingleUploader } from "../middleware/upload";
 import { authenticateJWT } from "../middleware/auth";
@@ -20,7 +23,12 @@ productRouter
 
 productRouter.get("/search", getSearchProducts);
 
-// productRouter.get("/", getBySubCategory);
+productRouter
+  .route("/:id/qna")
+  .post(authenticateJWT, createProductQnA)
+  .get(getProductQnA)
+
+productRouter.patch("/:id/qna/:qnaId", fetchProductAnswers);
 
 productRouter.get("/:id", getOneProduct);
 
