@@ -88,6 +88,38 @@ export const findAllCoupons = async (req: Request, res: Response) => {
   }
 };
 
+// 쿠폰 사용 처리 로직 (다른 컨트롤러에서도 사용 가능)
+export const processCouponUsage = async (userCouponId: number, userId: number, orderId: number) => {
+  const userCoupon = await prisma.userCoupon.findUnique({
+    where: { id: userCouponId },
+    include: { coupon: true }
+  });
+
+  if (!userCoupon || userCoupon.userId !== userId) {
+    throw new Error(COUPON_ERROR.NOT_FOUND_OR_NOT_OWNER);
+  }
+
+  if (userCoupon.isUsed) {
+    throw new Error(COUPON_ERROR.ALREADY_USED);
+  }
+
+  // 쿠폰 유효성 검증
+  if (!userCoupon.coupon.isActive || new Date() > userCoupon.coupon.validUntil) {
+    throw new Error(COUPON_ERROR.INVALID_COUPON);
+  }
+
+  await prisma.userCoupon.update({
+    where: { id: userCouponId },
+    data: {
+      isUsed: true,
+      usedAt: new Date(),
+      orderId: orderId,
+    },
+  });
+
+  return userCoupon;
+};
+
 export const useCoupon = async (req: UserRequest, res: Response) => {
   const userId = req.user?.id;
   if (!userId) {
@@ -97,32 +129,13 @@ export const useCoupon = async (req: UserRequest, res: Response) => {
   const { orderId } = req.body;
 
   try {
-    const userCoupon = await prisma.userCoupon.findUnique({
-      where: { id: couponId },
-    });
-
-    if (!userCoupon || userCoupon.userId !== userId) {
-      return res
-        .status(404)
-        .json({ error: COUPON_ERROR.NOT_FOUND_OR_NOT_OWNER });
-    }
-
-    if (userCoupon.isUsed) {
-      return res.status(400).json({ error: COUPON_ERROR.ALREADY_USED });
-    }
-
-    await prisma.userCoupon.update({
-      where: { id: couponId },
-      data: {
-        isUsed: true,
-        usedAt: new Date(),
-        orderId: orderId || null,
-      },
-    });
-
+    await processCouponUsage(couponId, userId, orderId);
     return res.status(200).json({ message: COUPON_SUCCESS.USE });
   } catch (error) {
     console.error(error);
+    if (error instanceof Error) {
+      return res.status(400).json({ error: error.message });
+    }
     return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };

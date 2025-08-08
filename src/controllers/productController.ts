@@ -55,37 +55,37 @@ const getBrandProducts = async (brandId: number, limit: number) => {
   return brandProducts;
 };
 
-const getPickProducts = async (limit: number) => {
-  const pickProducts = await prisma.product.findMany({
-    where: { isPick: true },
-    take: limit,
-    include: { brand: true, category: true },
-    orderBy: { createdAt: "desc" },
-  });
+// const getPickProducts = async (limit: number) => {
+//   const pickProducts = await prisma.product.findMany({
+//     where: { isPick: true },
+//     take: limit,
+//     include: { brand: true, category: true },
+//     orderBy: { createdAt: "desc" },
+//   });
 
-  return pickProducts;
-};
+//   return pickProducts;
+// };
 
-export const getLandingProducts = async (req: Request, res: Response) => {
-  try {
-    const bestProducts = await getBestProducts();
-    const brandProducts = await getBrandProducts();
-    const picKProducts = await getPickProducts();
-    // 임의값
-    const newProducts = await getNewProducts(5);
+// export const getLandingProducts = async (req: Request, res: Response) => {
+//   try {
+//     const bestProducts = await getBestProducts();
+//     const brandProducts = await getBrandProducts();
+//     const picKProducts = await getPickProducts();
+//     // 임의값
+//     const newProducts = await getNewProducts(5);
 
-    return res.status(200).json({
-      message: "Landing products fetched successfully",
-      best: bestProducts,
-      brand: brandProducts,
-      pick: picKProducts,
-      new: newProducts,
-    });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Server error" });
-  }
-};
+//     return res.status(200).json({
+//       message: "Landing products fetched successfully",
+//       best: bestProducts,
+//       brand: brandProducts,
+//       pick: picKProducts,
+//       new: newProducts,
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({ message: "Server error" });
+//   }
+// };
 
 export const createProduct = async (req: Request, res: Response) => {
   try {
