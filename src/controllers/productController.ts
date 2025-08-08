@@ -370,3 +370,31 @@ export const getOneProduct = async (req: Request, res: Response) => {
     return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
   }
 };
+
+
+export const getSearchProducts = async (req: Request, res: Response) => {
+  try {
+    const { query } = req.query;
+    if (!query) {
+      return res.status(400).json({ message: PRODUCT_ERROR.VALIDATION });
+    }
+
+    const searchProducts = await prisma.product.findMany({
+      where: {
+        name: { contains: query as string, mode: "insensitive" },
+      },
+      include: {
+        brand: true,
+        category: true,
+      },
+    });
+
+    return res.status(200).json({
+      message: PRODUCT_SUCCESS.LIST,
+      products: searchProducts,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });  
+  }
+};
