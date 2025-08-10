@@ -3,6 +3,7 @@ import prisma from "../lib/prisma";
 import { COMMON_ERROR, PRODUCT_ERROR } from "../constants/errorMessage";
 import { PRODUCT_SUCCESS } from "../constants/successMessage";
 import { Prisma } from "@prisma/client";
+import { UserRequest } from "../types/expressUserRequest";
 
 const getBestProducts = async (limit: number = 4) => {
   const popularProductsWithCount = await prisma.$queryRaw<
@@ -136,7 +137,12 @@ export const getLandingProducts = async (req: Request, res: Response) => {
   }
 };
 
-export const createProduct = async (req: Request, res: Response) => {
+export const createProduct = async (req: UserRequest, res: Response) => {
+  const userId = req.user?.id;
+  if (!userId) {
+    return res.status(401).json({ message: COMMON_ERROR.UNAUTHORIZED });
+  }
+
   try {
     const {
       name,
@@ -156,15 +162,27 @@ export const createProduct = async (req: Request, res: Response) => {
       });
     }
 
-    if (!req.file) {
-      return res
-        .status(400)
-        .json({ message: PRODUCT_ERROR.THUMBNAIL_REQUIRED });
+    // Azure 업로드 결과 가져오기
+    const files = req.files as {
+      thumbnail?: (Express.Multer.File & { url?: string })[];
+      detailImage?: (Express.Multer.File & { url?: string })[];
+    };
+
+    const thumbnailImageUrl = files?.thumbnail?.[0]?.url;
+    const detailImageUrl = files?.detailImage?.[0]?.url ?? "";
+
+    // if (!req.file) {
+    //   return res
+    //     .status(400)
+    //     .json({ message: PRODUCT_ERROR.THUMBNAIL_REQUIRED });
+    // }
+    if (!thumbnailImageUrl) {
+      return res.status(400).json({ message: PRODUCT_ERROR.THUMBNAIL_REQUIRED });
     }
 
-    const thumbnailImageUrl = `${req.protocol}://${req.get("host")}/uploads/${
-      req.file.filename
-    }`;
+    // const thumbnailImageUrl = `${req.protocol}://${req.get("host")}/uploads/${
+    //   req.file.filename
+    // }`;
 
     const newProduct = await prisma.product.create({
       data: {
@@ -175,7 +193,7 @@ export const createProduct = async (req: Request, res: Response) => {
         price: Number(price),
         stockQuantity: Number(stockQuantity),
         thumbnailImageUrl,
-        detailImageUrl: "", // 빈 문자열로 설정
+        detailImageUrl,
         detailDescription,
         isSample,
         samplePrice: samplePrice ? Number(samplePrice) : null,

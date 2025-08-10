@@ -1,36 +1,27 @@
-import multer from "multer";
-import path from "path";
-import fs from "fs";
+import { MASNameResolver, MulterAzureStorage } from "multer-azure-blob-storage";
 
-// 현재는 로컬 디스크 저장
-const uploadPath = path.join(__dirname, "../../public/uploads");
-if (!fs.existsSync(uploadPath)) fs.mkdirSync(uploadPath, { recursive: true });
+if (!process.env.AZURE_STORAGE_ACCOUNT)
+  throw new Error("AZURE_STORAGE_ACCOUNT missing");
+if (!process.env.AZURE_STORAGE_ACCOUNT_KEY)
+  throw new Error("AZURE_STORAGE_ACCOUNT_KEY missing");
+if (!process.env.AZURE_STORAGE_CONTAINER)
+  throw new Error("AZURE_STORAGE_CONTAINER missing");
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.trunc(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
-  },
+const blobName: MASNameResolver = async (req, file) => {
+  const ext = file.mimetype.split("/")[1] ?? "bin"; // ← mimetype 오타 주의!
+  const yyyy = new Date().getFullYear();
+  const mm = String(new Date().getMonth() + 1).padStart(2, "0");
+  return `${yyyy}/${mm}/${Date.now()}-${Math.trunc(
+    Math.random() * 1e9
+  )}.${ext}`;
+};
+
+const storage = new MulterAzureStorage({
+  accountName: process.env.AZURE_STORAGE_ACCOUNT!,
+  accessKey: process.env.AZURE_STORAGE_ACCOUNT_KEY!,
+  containerName: process.env.AZURE_STORAGE_CONTAINER,
+  containerAccessLevel: "blob", // "private" | "blob" | "container"
+  blobName, // ✅ fileName 대신 blobName 리졸버 사용
 });
 
 export default storage;
-export { uploadPath };
-
-
-
-// 추후 애저로 변경할때
-// import { AzureStorage } from "multer-azure-blob-storage";
-
-// const storage = new AzureStorage({
-//   connectionString: process.env.AZURE_STORAGE_CONNECTION_STRING,
-//   accessKey: process.env.AZURE_STORAGE_ACCESS_KEY,
-//   accountName: process.env.AZURE_ACCOUNT_NAME,
-//   containerName: "uploads",
-//   containerAccessLevel: "blob",
-// });
-
-// export default storage;
