@@ -168,16 +168,26 @@ export const createProduct = async (req: UserRequest, res: Response) => {
       detailImage?: (Express.Multer.File & { url?: string })[];
     };
 
-    const thumbnailImageUrl = files?.thumbnail?.[0]?.url;
-    const detailImageUrl = files?.detailImage?.[0]?.url ?? "";
+    const thumbnailImageUrl = files?.thumbnail?.[0]
+      ? `https://${process.env.AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${
+          process.env.AZURE_STORAGE_CONTAINER
+        }/${(files.thumbnail[0] as any).blobName}`
+      : null;
 
+    const detailImageUrl = files?.detailImage?.[0]
+      ? `https://${process.env.AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${
+          process.env.AZURE_STORAGE_CONTAINER
+        }/${(files.detailImage[0] as any).blobName}`
+      : "";
     // if (!req.file) {
     //   return res
     //     .status(400)
     //     .json({ message: PRODUCT_ERROR.THUMBNAIL_REQUIRED });
     // }
     if (!thumbnailImageUrl) {
-      return res.status(400).json({ message: PRODUCT_ERROR.THUMBNAIL_REQUIRED });
+      return res
+        .status(400)
+        .json({ message: PRODUCT_ERROR.THUMBNAIL_REQUIRED });
     }
 
     // const thumbnailImageUrl = `${req.protocol}://${req.get("host")}/uploads/${
@@ -195,7 +205,7 @@ export const createProduct = async (req: UserRequest, res: Response) => {
         thumbnailImageUrl,
         detailImageUrl,
         detailDescription,
-        isSample,
+        isSample: isSample === "true",
         samplePrice: samplePrice ? Number(samplePrice) : null,
       },
     });
