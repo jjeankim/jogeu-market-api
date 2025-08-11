@@ -1,10 +1,14 @@
 import { MASNameResolver, MulterAzureStorage } from "multer-azure-blob-storage";
+import {
+  AZURE_STORAGE_ACCOUNT,
+  AZURE_STORAGE_ACCOUNT_KEY,
+  AZURE_STORAGE_CONTAINER,
+} from "../config/env";
 
-if (!process.env.AZURE_STORAGE_ACCOUNT)
-  throw new Error("AZURE_STORAGE_ACCOUNT missing");
-if (!process.env.AZURE_STORAGE_ACCOUNT_KEY)
+if (!AZURE_STORAGE_ACCOUNT) throw new Error("AZURE_STORAGE_ACCOUNT missing");
+if (!AZURE_STORAGE_ACCOUNT_KEY)
   throw new Error("AZURE_STORAGE_ACCOUNT_KEY missing");
-if (!process.env.AZURE_STORAGE_CONTAINER)
+if (!AZURE_STORAGE_CONTAINER)
   throw new Error("AZURE_STORAGE_CONTAINER missing");
 
 const blobName: MASNameResolver = async (req, file) => {
@@ -17,9 +21,9 @@ const blobName: MASNameResolver = async (req, file) => {
 };
 
 const storage = new MulterAzureStorage({
-  accountName: process.env.AZURE_STORAGE_ACCOUNT!,
-  accessKey: process.env.AZURE_STORAGE_ACCOUNT_KEY!,
-  containerName: process.env.AZURE_STORAGE_CONTAINER,
+  accountName: AZURE_STORAGE_ACCOUNT!,
+  accessKey: AZURE_STORAGE_ACCOUNT_KEY!,
+  containerName: AZURE_STORAGE_CONTAINER,
   containerAccessLevel: "blob", // "private" | "blob" | "container"
   blobName, // ✅ fileName 대신 blobName 리졸버 사용
 });

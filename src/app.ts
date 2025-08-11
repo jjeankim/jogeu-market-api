@@ -5,7 +5,7 @@ import cors from "cors";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger";
 
-import dotenv from "dotenv";
+import "dotenv/config";
 import authRouter from "./routes/authRouter";
 import userRouter from "./routes/userRouter";
 import brandRouter from "./routes/brandRouter";
@@ -20,7 +20,10 @@ import productRouter from "./routes/productRouter";
 import categoryRouter from "./routes/categoryRouter";
 import { errorHandler } from "./middleware/errorHandler";
 
-dotenv.config();
+
+
+
+
 
 const app = express();
 app.use(express.json());
@@ -28,6 +31,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.use(cors({ origin: process.env.CLIENT_ORIGIN, credentials: true }));
+// 정적 파일 서빙 (시드 이미지: /B_no_bg, /F_no_bg, /L_no_bg, /P_no_bg 경로)
+app.use(express.static("public"));
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
