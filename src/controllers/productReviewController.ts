@@ -4,6 +4,7 @@ import { UserRequest } from "../types/expressUserRequest";
 import { Prisma } from "@prisma/client";
 import { REVIEW_SUCCESS } from "../constants/successMessage";
 import { COMMON_ERROR, REVIEW_ERROR } from "../constants/errorMessage";
+import { maskEmailLocalPart } from "../utils/maskEmail";
 
 // 상품 리뷰 가져오기
 export const getProductReviews: RequestHandler = async (req, res) => {
@@ -18,16 +19,28 @@ export const getProductReviews: RequestHandler = async (req, res) => {
         orderBy: { createdAt: "desc" },
         skip: offset,
         take: limit,
+        include: {
+          user: { select: { email: true } },
+        },
       }),
       prisma.review.count({ where: { productId } }),
     ]);
+
+    const maskedReviews = reviews.map((review) => {
+      const email = review.user?.email || "";
+      const maskedLocalPart = maskEmailLocalPart(email);
+      return {
+        ...review,
+        maskedLocalPart,
+      };
+    });
 
     const totalPages = Math.ceil(total / limit);
     const hasMore = page < totalPages;
 
     res.status(200).json({
       message: REVIEW_SUCCESS.GET_LIST,
-      data: reviews,
+      data: maskedReviews,
       pagination: {
         total,
         page,
