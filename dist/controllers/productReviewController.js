@@ -17,6 +17,7 @@ const prisma_1 = __importDefault(require("../lib/prisma"));
 const client_1 = require("@prisma/client");
 const successMessage_1 = require("../constants/successMessage");
 const errorMessage_1 = require("../constants/errorMessage");
+const maskEmail_1 = require("../utils/maskEmail");
 // 상품 리뷰 가져오기
 const getProductReviews = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const productId = Number(req.params.id);
@@ -30,14 +31,23 @@ const getProductReviews = (req, res) => __awaiter(void 0, void 0, void 0, functi
                 orderBy: { createdAt: "desc" },
                 skip: offset,
                 take: limit,
+                include: {
+                    user: { select: { email: true } },
+                },
             }),
             prisma_1.default.review.count({ where: { productId } }),
         ]);
+        const maskedReviews = reviews.map((review) => {
+            var _a;
+            const email = ((_a = review.user) === null || _a === void 0 ? void 0 : _a.email) || "";
+            const maskedLocalPart = (0, maskEmail_1.maskEmailLocalPart)(email);
+            return Object.assign(Object.assign({}, review), { maskedLocalPart });
+        });
         const totalPages = Math.ceil(total / limit);
         const hasMore = page < totalPages;
         res.status(200).json({
             message: successMessage_1.REVIEW_SUCCESS.GET_LIST,
-            data: reviews,
+            data: maskedReviews,
             pagination: {
                 total,
                 page,

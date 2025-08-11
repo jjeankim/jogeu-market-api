@@ -10,11 +10,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const multer_azure_blob_storage_1 = require("multer-azure-blob-storage");
-if (!process.env.AZURE_STORAGE_ACCOUNT)
+const env_1 = require("../config/env");
+if (!env_1.AZURE_STORAGE_ACCOUNT)
     throw new Error("AZURE_STORAGE_ACCOUNT missing");
-if (!process.env.AZURE_STORAGE_ACCOUNT_KEY)
+if (!env_1.AZURE_STORAGE_ACCOUNT_KEY)
     throw new Error("AZURE_STORAGE_ACCOUNT_KEY missing");
-if (!process.env.AZURE_STORAGE_CONTAINER)
+if (!env_1.AZURE_STORAGE_CONTAINER)
     throw new Error("AZURE_STORAGE_CONTAINER missing");
 const blobName = (req, file) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
@@ -24,9 +25,9 @@ const blobName = (req, file) => __awaiter(void 0, void 0, void 0, function* () {
     return `${yyyy}/${mm}/${Date.now()}-${Math.trunc(Math.random() * 1e9)}.${ext}`;
 });
 const storage = new multer_azure_blob_storage_1.MulterAzureStorage({
-    accountName: process.env.AZURE_STORAGE_ACCOUNT,
-    accessKey: process.env.AZURE_STORAGE_ACCOUNT_KEY,
-    containerName: process.env.AZURE_STORAGE_CONTAINER,
+    accountName: env_1.AZURE_STORAGE_ACCOUNT,
+    accessKey: env_1.AZURE_STORAGE_ACCOUNT_KEY,
+    containerName: env_1.AZURE_STORAGE_CONTAINER,
     containerAccessLevel: "blob", // "private" | "blob" | "container"
     blobName, // ✅ fileName 대신 blobName 리졸버 사용
 });

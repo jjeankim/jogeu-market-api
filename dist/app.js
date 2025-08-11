@@ -18,7 +18,7 @@ const productReviewRouter_1 = __importDefault(require("./routes/productReviewRou
 const cors_1 = __importDefault(require("cors"));
 const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const swagger_1 = require("./config/swagger");
-const dotenv_1 = __importDefault(require("dotenv"));
+require("dotenv/config");
 const authRouter_1 = __importDefault(require("./routes/authRouter"));
 const userRouter_1 = __importDefault(require("./routes/userRouter"));
 const brandRouter_1 = __importDefault(require("./routes/brandRouter"));
@@ -31,12 +31,13 @@ const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const productRouter_1 = __importDefault(require("./routes/productRouter"));
 const categoryRouter_1 = __importDefault(require("./routes/categoryRouter"));
 const errorHandler_1 = require("./middleware/errorHandler");
-dotenv_1.default.config();
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use((0, cookie_parser_1.default)());
 app.use((0, cors_1.default)({ origin: process.env.CLIENT_ORIGIN, credentials: true }));
+// 정적 파일 서빙 (시드 이미지: /B_no_bg, /F_no_bg, /L_no_bg, /P_no_bg 경로)
+app.use(express_1.default.static("public"));
 app.use("/api-docs", swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swagger_1.swaggerSpec));
 app.use("/api/products/:id/reviews", productReviewRouter_1.default);
 app.use("/api/auth", authRouter_1.default);
