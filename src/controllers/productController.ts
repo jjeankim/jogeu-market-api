@@ -1,8 +1,10 @@
 import { Request, RequestHandler, Response } from "express";
+import { UserRequest } from "../types/expressUserRequest";
 import prisma from "../lib/prisma";
 import { COMMON_ERROR, PRODUCT_ERROR } from "../constants/errorMessage";
 import { PRODUCT_SUCCESS } from "../constants/successMessage";
 import { Prisma } from "@prisma/client";
+import { UserRequest } from "../types/expressUserRequest";
 
 const getBestProducts = async (limit: number = 4) => {
   const popularProductsWithCount = await prisma.$queryRaw<
@@ -136,7 +138,12 @@ export const getLandingProducts = async (req: Request, res: Response) => {
   }
 };
 
-export const createProduct = async (req: Request, res: Response) => {
+export const createProduct = async (req: UserRequest, res: Response) => {
+  const userId = req.user?.id;
+  if (!userId) {
+    return res.status(401).json({ message: COMMON_ERROR.UNAUTHORIZED });
+  }
+
   try {
     const {
       name,
@@ -156,15 +163,37 @@ export const createProduct = async (req: Request, res: Response) => {
       });
     }
 
-    if (!req.file) {
+    // Azure 업로드 결과 가져오기
+    const files = req.files as {
+      thumbnail?: (Express.Multer.File & { url?: string })[];
+      detailImage?: (Express.Multer.File & { url?: string })[];
+    };
+
+    const thumbnailImageUrl = files?.thumbnail?.[0]
+      ? `https://${process.env.AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${
+          process.env.AZURE_STORAGE_CONTAINER
+        }/${(files.thumbnail[0] as any).blobName}`
+      : null;
+
+    const detailImageUrl = files?.detailImage?.[0]
+      ? `https://${process.env.AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${
+          process.env.AZURE_STORAGE_CONTAINER
+        }/${(files.detailImage[0] as any).blobName}`
+      : "";
+    // if (!req.file) {
+    //   return res
+    //     .status(400)
+    //     .json({ message: PRODUCT_ERROR.THUMBNAIL_REQUIRED });
+    // }
+    if (!thumbnailImageUrl) {
       return res
         .status(400)
         .json({ message: PRODUCT_ERROR.THUMBNAIL_REQUIRED });
     }
 
-    const thumbnailImageUrl = `${req.protocol}://${req.get("host")}/uploads/${
-      req.file.filename
-    }`;
+    // const thumbnailImageUrl = `${req.protocol}://${req.get("host")}/uploads/${
+    //   req.file.filename
+    // }`;
 
     const newProduct = await prisma.product.create({
       data: {
@@ -175,9 +204,9 @@ export const createProduct = async (req: Request, res: Response) => {
         price: Number(price),
         stockQuantity: Number(stockQuantity),
         thumbnailImageUrl,
-        detailImageUrl: "", // 빈 문자열로 설정
+        detailImageUrl,
         detailDescription,
-        isSample,
+        isSample: isSample === "true",
         samplePrice: samplePrice ? Number(samplePrice) : null,
       },
     });
@@ -404,6 +433,86 @@ export const getSearchProducts = async (req: Request, res: Response) => {
       message: PRODUCT_SUCCESS.LIST,
       products: searchProducts,
     });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
+  }
+};
+
+
+export const createProductQnA = async (req: UserRequest, res: Response) => {
+  try {
+    const { question } = req.body;
+
+    const productId = Number(req.params.id);
+    const userId = Number(req.user!.id);
+
+    const newProductQnA = await prisma.productQnA.create({
+      data: {
+        productId: productId,
+        userId: userId,
+        question: question,
+      },
+    });
+
+    return res.status(201).json({
+      message: PRODUCT_SUCCESS.CREATE,
+      productQnA: newProductQnA,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
+  }
+};
+
+export const getProductQnA = async (req: Request, res: Response) => {
+  try {
+    const productId = Number(req.params.id);
+
+    const productQnA = await prisma.productQnA.findMany({
+      where: { productId: productId },
+     
+    });
+
+    return res.status(200).json({
+      message: PRODUCT_SUCCESS.LIST,
+      productQnA: productQnA,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
+  }
+};
+
+export const fetchProductAnswers = async (req: Request, res: Response) => {
+  try {
+    const productId = Number(req.params.id);
+    const qnaId = Number(req.params.qnaId);
+    const { answer } = req.body as { answer: string };
+
+    if (!answer || !answer.trim()) {
+      return res.status(400).json({ message: PRODUCT_ERROR.VALIDATION || "유효하지 않은 요청입니다." });
+    }
+
+    // 존재/소유 상품 확인
+    const qna = await prisma.productQnA.findFirst({
+      where: { id: qnaId, productId },
+      select: { id: true },
+    });
+    if (!qna) {
+      return res.status(404).json({ message: PRODUCT_ERROR.NOT_FOUND || "문의가 없습니다." });
+    }
+
+    const updated = await prisma.productQnA.update({
+      where: { id: qnaId },
+      data: {
+        answer,
+        status: "ANSWERED",
+        answeredAt: new Date(),
+      },
+    });
+
+    return res.status(200).json({ message: "답변이 저장되었습니다.", data: updated });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });

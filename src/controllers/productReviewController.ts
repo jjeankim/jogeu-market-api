@@ -57,6 +57,7 @@ export const getProductReviews: RequestHandler = async (req, res) => {
 
 //상품 리뷰 작성하기
 export const createProductReview = async (req: UserRequest, res: Response) => {
+  
   const userId = req.user?.id;
   if (!userId) {
     return res.status(401).json({ message: COMMON_ERROR.UNAUTHORIZED });
@@ -64,12 +65,16 @@ export const createProductReview = async (req: UserRequest, res: Response) => {
 
   const productId = Number(req.params.id);
   const { rating, reviewText, orderItemId } = req.body;
-  let imageUrl: string | null = null;
-  if (req.file) {
-    imageUrl = `${req.protocol}://${req.get("host")}/uploads/${
-      req.file.filename
-    }`;
-  }
+
+  //Azure 업로드 결과 사용
+  const f = req.file as Express.Multer.File & {
+    url?: string;
+    blobName?: string;
+    container?: string;
+  };
+  
+  const imageUrl = f?.url ?? null;
+ 
   try {
     const review = await prisma.review.create({
       data: {
@@ -92,6 +97,7 @@ export const createProductReview = async (req: UserRequest, res: Response) => {
 
 // 상품 리뷰 수정하기
 export const updateProductReview = async (req: UserRequest, res: Response) => {
+
   const userId = req.user?.id;
   if (!userId) {
     return res.status(401).json({ message: COMMON_ERROR.UNAUTHORIZED });
@@ -113,7 +119,9 @@ export const updateProductReview = async (req: UserRequest, res: Response) => {
     }
 
     const imageUrl = req.file
-      ? `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`
+      ? `https://${process.env.AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${
+          process.env.AZURE_STORAGE_CONTAINER
+        }/${(req.file as any).blobName}`
       : review.imageUrl;
 
     const updateReview = await prisma.review.update({

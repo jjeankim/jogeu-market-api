@@ -55,7 +55,7 @@ export const findMyCoupon = async (req: UserRequest, res: Response) => {
   }
   try {
     const userCoupon = await prisma.userCoupon.findMany({
-      where: { userId },
+      where: { userId , isUsed: false },
       include:{
         coupon: true
       }
