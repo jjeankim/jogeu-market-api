@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     permissions:
       contents: read #This is required for actions/checkout
 
@@ -28,7 +28,7 @@ jobs:
           npm install
           npm run build --if-present
           npm run test --if-present
-      
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
@@ -51,13 +51,13 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_D0A55C6E6C0C4110AD5C1F8222459201 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_8C66EE167E3443938F354B6A344842BF }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_7F44E7D196E1432984184D4572125202 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_5408C96B5D5548A4B130E666CF83E01E }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_FF150BFA40704621B42F69FD83CB15DA }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_204277BFF7EC413A9EC00DCAC7A24AFC }}
 
       - name: 'Deploy to Azure Web App'
-        uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
         with:
           app-name: 'jogeumarket'
           slot-name: 'Production'
