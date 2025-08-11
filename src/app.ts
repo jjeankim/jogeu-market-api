@@ -20,11 +20,6 @@ import productRouter from "./routes/productRouter";
 import categoryRouter from "./routes/categoryRouter";
 import { errorHandler } from "./middleware/errorHandler";
 
-
-
-
-
-
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -49,12 +44,12 @@ app.use("/api/samples", sampleRouter);
 app.use("/api/categories", categoryRouter);
 
 // 404 핸들러
-app.use((req,res) => {
-  res.status(404).json({message: "Not Found"});
-})
+app.use((req, res) => {
+  res.status(404).json({ message: "Not Found" });
+});
 
 // 라우트 처리 중 예외나 next(err)로 전달된 에러 잡아서 처리
-app.use(errorHandler)
+app.use(errorHandler);
 
 app.listen(process.env.PORT || 4000, () => {
   console.log("Server running on port 4000");
