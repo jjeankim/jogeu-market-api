@@ -76,7 +76,7 @@ const getPickProducts = (limit) => __awaiter(void 0, void 0, void 0, function* (
 });
 const getLandingProducts = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { pickLimit = "5", newLimit = "10", brandLimit = "5", bestLimit = "10", } = req.query;
+        const { pickLimit = "5", newLimit = "20", brandLimit = "5", bestLimit = "20", } = req.query;
         const pickLimitNum = Number(pickLimit);
         const newLimitNum = Number(newLimit);
         const brandLimitNum = Number(brandLimit);
@@ -379,7 +379,9 @@ const fetchProductAnswers = (req, res) => __awaiter(void 0, void 0, void 0, func
         const qnaId = Number(req.params.qnaId);
         const { answer } = req.body;
         if (!answer || !answer.trim()) {
-            return res.status(400).json({ message: errorMessage_1.PRODUCT_ERROR.VALIDATION || "유효하지 않은 요청입니다." });
+            return res.status(400).json({
+                message: errorMessage_1.PRODUCT_ERROR.VALIDATION || "유효하지 않은 요청입니다.",
+            });
         }
         // 존재/소유 상품 확인
         const qna = yield prisma_1.default.productQnA.findFirst({
@@ -387,7 +389,9 @@ const fetchProductAnswers = (req, res) => __awaiter(void 0, void 0, void 0, func
             select: { id: true },
         });
         if (!qna) {
-            return res.status(404).json({ message: errorMessage_1.PRODUCT_ERROR.NOT_FOUND || "문의가 없습니다." });
+            return res
+                .status(404)
+                .json({ message: errorMessage_1.PRODUCT_ERROR.NOT_FOUND || "문의가 없습니다." });
         }
         const updated = yield prisma_1.default.productQnA.update({
             where: { id: qnaId },
@@ -397,7 +401,9 @@ const fetchProductAnswers = (req, res) => __awaiter(void 0, void 0, void 0, func
                 answeredAt: new Date(),
             },
         });
-        return res.status(200).json({ message: "답변이 저장되었습니다.", data: updated });
+        return res
+            .status(200)
+            .json({ message: "답변이 저장되었습니다.", data: updated });
     }
     catch (error) {
         console.error(error);
