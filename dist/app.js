@@ -56,30 +56,19 @@ app.use((req, res) => {
 });
 // 라우트 처리 중 예외나 next(err)로 전달된 에러 잡아서 처리
 app.use(errorHandler_1.errorHandler);
-// // 데이터베이스와의 연결 종료
-// process.on("SIGINT", async () => {
-//   await prisma.$disconnect();
-//   console.log("Prisma 연결 종료");
-//   process.exit();
-// });
 // DB 연결 시도
 (() => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield prisma_1.default.$connect();
-        console.log("✅ Database connected");
+        console.log("Database connected");
         // 서버 시작
         const port = process.env.PORT || 4000;
         app.listen(port, () => {
-            console.log(`🚀 Server running on port ${port}`);
+            console.log(`Server running on port ${port}`);
         });
     }
     catch (err) {
-        console.error("❌ Database connection failed:", err);
-        // DB 연결 실패해도 서버는 뜨게 하고 싶으면 아래 주석 해제
-        // const port = process.env.PORT || 4000;
-        // app.listen(port, () => {
-        //   console.log(`🚀 Server running without DB on port ${port}`);
-        // });
+        console.error("Database connection failed:", err);
     }
 }))();
 // 안전한 종료 처리
@@ -90,6 +79,3 @@ const shutdown = () => __awaiter(void 0, void 0, void 0, function* () {
 });
 process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
-// app.listen(process.env.PORT || 4000, () => {
-//   console.log("Server running on port 4000");
-// });
