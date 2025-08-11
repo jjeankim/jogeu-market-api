@@ -4,7 +4,6 @@ import prisma from "../lib/prisma";
 import { COMMON_ERROR, PRODUCT_ERROR } from "../constants/errorMessage";
 import { PRODUCT_SUCCESS } from "../constants/successMessage";
 import { Prisma } from "@prisma/client";
-import { UserRequest } from "../types/expressUserRequest";
 
 const getBestProducts = async (limit: number = 4) => {
   const popularProductsWithCount = await prisma.$queryRaw<
