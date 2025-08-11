@@ -56,7 +56,7 @@ app.use((req, res) => {
 });
 // 라우트 처리 중 예외나 next(err)로 전달된 에러 잡아서 처리
 app.use(errorHandler_1.errorHandler);
-app.listen(4000, () => {
+app.listen(process.env.PORT || 4000, () => {
     console.log("Server running on port 4000");
 });
 // 데이터베이스와의 연결 종료
