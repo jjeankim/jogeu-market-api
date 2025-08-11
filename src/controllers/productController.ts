@@ -88,9 +88,9 @@ export const getLandingProducts = async (req: Request, res: Response) => {
   try {
     const {
       pickLimit = "5",
-      newLimit = "10",
+      newLimit = "20",
       brandLimit = "5",
-      bestLimit = "10",
+      bestLimit = "20",
     } = req.query;
 
     const pickLimitNum = Number(pickLimit);
@@ -438,7 +438,6 @@ export const getSearchProducts = async (req: Request, res: Response) => {
   }
 };
 
-
 export const createProductQnA = async (req: UserRequest, res: Response) => {
   try {
     const { question } = req.body;
@@ -470,7 +469,6 @@ export const getProductQnA = async (req: Request, res: Response) => {
 
     const productQnA = await prisma.productQnA.findMany({
       where: { productId: productId },
-     
     });
 
     return res.status(200).json({
@@ -490,7 +488,9 @@ export const fetchProductAnswers = async (req: Request, res: Response) => {
     const { answer } = req.body as { answer: string };
 
     if (!answer || !answer.trim()) {
-      return res.status(400).json({ message: PRODUCT_ERROR.VALIDATION || "유효하지 않은 요청입니다." });
+      return res.status(400).json({
+        message: PRODUCT_ERROR.VALIDATION || "유효하지 않은 요청입니다.",
+      });
     }
 
     // 존재/소유 상품 확인
@@ -499,7 +499,9 @@ export const fetchProductAnswers = async (req: Request, res: Response) => {
       select: { id: true },
     });
     if (!qna) {
-      return res.status(404).json({ message: PRODUCT_ERROR.NOT_FOUND || "문의가 없습니다." });
+      return res
+        .status(404)
+        .json({ message: PRODUCT_ERROR.NOT_FOUND || "문의가 없습니다." });
     }
 
     const updated = await prisma.productQnA.update({
@@ -511,7 +513,9 @@ export const fetchProductAnswers = async (req: Request, res: Response) => {
       },
     });
 
-    return res.status(200).json({ message: "답변이 저장되었습니다.", data: updated });
+    return res
+      .status(200)
+      .json({ message: "답변이 저장되었습니다.", data: updated });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
