@@ -2,7 +2,7 @@ name: Deploy API to Azure App Service
 
 on:
   push:
-    branches: [ main ] # main 브랜치 푸시 시 배포
+    branches: [ main ]
 
 jobs:
   build-and-deploy:
@@ -12,29 +12,31 @@ jobs:
       # 1. 코드 체크아웃
       - uses: actions/checkout@v4
 
-      # 2. Node.js 설치
+      # 2. Node.js 설치 (빌드 환경 설정)
       - uses: actions/setup-node@v4
         with:
           node-version: '22.x'
           cache: 'npm'
 
-      # 3. 패키지 설치 (CI 환경, 깨끗하게)
+      # 3. 패키지 설치
+      # `npm ci`를 통해 `package-lock.json` 기반으로 패키지 설치 (CI/CD 환경에 적합)
       - run: npm ci
 
-      # 4. Prisma Client 생성 (리눅스 환경에서)
+      # 4. Prisma Client 생성
       - run: npx prisma generate
 
-      # 5. TypeScript 빌드 -> dist 생성
+      # 5. TypeScript 빌드 -> dist 폴더 생성
       - run: npm run build
 
-      # 6. 배포 ZIP 생성 (node_modules + dist + prisma + package.json 등 포함)
+      # 6. 배포용 ZIP 생성 (dist, prisma, package.json 등만 포함)
+      # --exclude 옵션을 사용하여 node_modules 폴더 제외
       - run: |
-          zip -r app.zip dist node_modules prisma public package.json package-lock.json tsconfig.json
+          zip -r app.zip . --exclude "node_modules/*" ".git/*"
 
       # 7. Azure App Service로 ZIP Deploy
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: jogeumarket                  # Azure App Service 이름
+          app-name: jogeumarket
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: app.zip
