@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createReviewTag = exports.getReviewTags = exports.unlikeProductReview = exports.likeProductReview = exports.deleteProductReview = exports.updateProductReview = exports.createProductReview = exports.getProductReviews = void 0;
+exports.getProductReviewStats = exports.createReviewTag = exports.getReviewTags = exports.unlikeProductReview = exports.likeProductReview = exports.deleteProductReview = exports.updateProductReview = exports.createProductReview = exports.getProductReviews = void 0;
 const prisma_1 = __importDefault(require("../lib/prisma"));
 const client_1 = require("@prisma/client");
 const successMessage_1 = require("../constants/successMessage");
@@ -301,3 +301,29 @@ const createReviewTag = (req, res) => __awaiter(void 0, void 0, void 0, function
     }
 });
 exports.createReviewTag = createReviewTag;
+// 상품 리뷰 통계
+const getProductReviewStats = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const productId = Number(req.params.id);
+    try {
+        const reviews = yield prisma_1.default.review.findMany({
+            where: { productId },
+            select: { rating: true },
+        });
+        const total = reviews.length;
+        const average = total > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / total : 0;
+        // 1~5점대 분포 (소수점 버림 처리)
+        const distribution = [1, 2, 3, 4, 5].map((star) => ({
+            star,
+            count: reviews.filter((r) => Math.floor(r.rating) === star).length,
+        }));
+        res.json({
+            total,
+            average: Number(average.toFixed(1)),
+            distribution,
+        });
+    }
+    catch (error) {
+        res.status(500).json({ message: "리뷰 통계 조회 실패" });
+    }
+});
+exports.getProductReviewStats = getProductReviewStats;
