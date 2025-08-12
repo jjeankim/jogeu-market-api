@@ -24,4 +24,5 @@ productReviewRouter
     .route("/:reviewId/tags")
     .get(productReviewController_1.getReviewTags)
     .post(auth_1.authenticateJWT, productReviewController_1.createReviewTag);
+productReviewRouter.get("/stats", productReviewController_1.getProductReviewStats);
 exports.default = productReviewRouter;
