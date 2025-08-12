@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.logout = exports.refreshToken = exports.login = exports.signup = void 0;
 const prisma_1 = __importDefault(require("../lib/prisma"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
-const token_1 = __importDefault(require("../utils/token"));
+const token_1 = require("../utils/token");
 const authSchema_1 = require("../validator/authSchema");
 const errorMessage_1 = require("../constants/errorMessage");
 const successMessage_1 = require("../constants/successMessage");
@@ -86,7 +86,8 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         if (!isValid) {
             return res.status(401).json({ message: errorMessage_1.AUTH_ERROR.INVALID_CREDENTIALS });
         }
-        const { accessToken, refreshToken } = (0, token_1.default)(user);
+        const accessToken = (0, token_1.generateAccessToken)(user);
+        const refreshToken = (0, token_1.generateRefreshToken)(user);
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production", //개발중일때는 false
@@ -122,13 +123,7 @@ const refreshToken = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         if (!user) {
             return res.status(401).json({ message: errorMessage_1.COMMON_ERROR.UNAUTHORIZED });
         }
-        const { accessToken, refreshToken } = (0, token_1.default)(user);
-        res.cookie("refreshToken", refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-        });
+        const accessToken = (0, token_1.generateAccessToken)(user);
         res.json({ accessToken });
     }
     catch (error) {
