@@ -1,7 +1,7 @@
 import { User } from "../types/userType";
 import jwt from "jsonwebtoken";
 
-const generateToken = (user: User) => {
+export const generateAccessToken = (user: User) => {
   const accessToken = jwt.sign(
     {
       id: user.id,
@@ -13,6 +13,10 @@ const generateToken = (user: User) => {
     }
   );
 
+  return accessToken;
+};
+
+export const generateRefreshToken = (user: User) => {
   const refreshToken = jwt.sign(
     {
       id: user.id,
@@ -22,7 +26,6 @@ const generateToken = (user: User) => {
       expiresIn: "7d",
     }
   );
-  return { accessToken, refreshToken };
-};
 
-export default generateToken;
+  return refreshToken
+};

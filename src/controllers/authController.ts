@@ -1,7 +1,7 @@
 import { Request, RequestHandler, Response } from "express";
 import prisma from "../lib/prisma";
 import bcrypt from "bcryptjs";
-import generateToken from "../utils/token";
+import { generateAccessToken, generateRefreshToken } from "../utils/token";
 import { loginSchema, signupSchema } from "../validator/authSchema";
 import { AUTH_ERROR, COMMON_ERROR } from "../constants/errorMessage";
 import { AUTH_SUCCESS } from "../constants/successMessage";
@@ -87,7 +87,8 @@ export const login: RequestHandler = async (req, res) => {
       return res.status(401).json({ message: AUTH_ERROR.INVALID_CREDENTIALS });
     }
 
-    const { accessToken, refreshToken } = generateToken(user);
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
@@ -130,13 +131,8 @@ export const refreshToken = async (req: UserRequest, res: Response) => {
       return res.status(401).json({ message: COMMON_ERROR.UNAUTHORIZED });
     }
 
-    const { accessToken, refreshToken } = generateToken(user);
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    const accessToken = generateAccessToken(user);
+
     res.json({ accessToken });
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {
