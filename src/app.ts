@@ -29,7 +29,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-app.use(cors({ origin: process.env.CLIENT_ORIGIN, credentials: true }));
+const allowerdOrigin = process.env.CLIENT_ORIGIN?.split(',')
+app.use(cors({ origin: allowerdOrigin, credentials: true }));
 // 정적 파일 서빙 (시드 이미지: /B_no_bg, /F_no_bg, /L_no_bg, /P_no_bg 경로)
 app.use(express.static("public"));
 
