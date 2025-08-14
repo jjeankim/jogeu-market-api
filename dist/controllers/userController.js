@@ -63,6 +63,10 @@ const updatePassword = (req, res) => __awaiter(void 0, void 0, void 0, function*
         if (!user) {
             return res.status(404).json({ message: errorMessage_1.COMMON_ERROR.UNAUTHORIZED });
         }
+        // 비밀번호가 설정되어 있지 않은(소셜 로그인만 한) 계정
+        if (!user.password) {
+            return res.status(409).json({ message: errorMessage_1.USER_ERROR.NO_PASSWORD_SET });
+        }
         // 현재 비밀번호가 일치하는지 확인
         const isPasswordMatch = yield bcryptjs_1.default.compare(currentPassword, user === null || user === void 0 ? void 0 : user.password);
         if (!isPasswordMatch) {

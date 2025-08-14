@@ -48,7 +48,7 @@ export const updatePassword = async (req: UserRequest, res: Response) => {
   if (!currentPassword || !newPassword) {
     return res.status(400).json({ message: USER_ERROR.PASSWORD_REQUIRED });
   }
-  
+
   if (currentPassword === newPassword) {
     return res.status(400).json({ message: USER_ERROR.SAME_AS_OLD_PASSWORD });
   }
@@ -63,6 +63,12 @@ export const updatePassword = async (req: UserRequest, res: Response) => {
     if (!user) {
       return res.status(404).json({ message: COMMON_ERROR.UNAUTHORIZED });
     }
+
+    // 비밀번호가 설정되어 있지 않은(소셜 로그인만 한) 계정
+    if (!user.password) {
+      return res.status(409).json({ message: USER_ERROR.NO_PASSWORD_SET });
+    }
+
     // 현재 비밀번호가 일치하는지 확인
     const isPasswordMatch = await bcrypt.compare(
       currentPassword,
