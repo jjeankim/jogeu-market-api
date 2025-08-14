@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
+var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const prisma_1 = __importDefault(require("./lib/prisma"));
@@ -31,11 +32,16 @@ const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const productRouter_1 = __importDefault(require("./routes/productRouter"));
 const categoryRouter_1 = __importDefault(require("./routes/categoryRouter"));
 const errorHandler_1 = require("./middleware/errorHandler");
+const helmet_1 = __importDefault(require("helmet"));
+const compression_1 = __importDefault(require("compression"));
 const app = (0, express_1.default)();
+app.use((0, compression_1.default)());
+app.use((0, helmet_1.default)());
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use((0, cookie_parser_1.default)());
-app.use((0, cors_1.default)({ origin: process.env.CLIENT_ORIGIN, credentials: true }));
+const allowerdOrigin = (_a = process.env.CLIENT_ORIGIN) === null || _a === void 0 ? void 0 : _a.split(',');
+app.use((0, cors_1.default)({ origin: allowerdOrigin, credentials: true }));
 // 정적 파일 서빙 (시드 이미지: /B_no_bg, /F_no_bg, /L_no_bg, /P_no_bg 경로)
 app.use(express_1.default.static("public"));
 app.use("/api-docs", swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swagger_1.swaggerSpec));

@@ -25,6 +25,7 @@ model User {
   qnas        ProductQnA[]
   provider    String?      @db.VarChar(20) 
   providerId  String?      @db.VarChar(100) 
+  @@unique([provider, providerId])
 }
 
 model Address {
