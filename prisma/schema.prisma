@@ -10,8 +10,8 @@ datasource db {
 
 model User {
   id          Int          @id @default(autoincrement())
-  email       String       @unique @db.VarChar(255)
-  password    String       @db.VarChar(255)
+  email       String?      @unique @db.VarChar(255)
+  password    String?      @db.VarChar(255)
   name        String       @db.VarChar(100)
   phoneNumber String?      @db.VarChar(20)
   createdAt   DateTime     @default(now())
@@ -23,6 +23,8 @@ model User {
   userCoupons UserCoupon[]
   wishlists   Wishlist[]
   qnas        ProductQnA[]
+  provider    String?      @db.VarChar(20) 
+  providerId  String?      @db.VarChar(100) 
 }
 
 model Address {
