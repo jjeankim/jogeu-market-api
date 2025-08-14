@@ -1,65 +1,43 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
-name: Build and deploy Node.js app to Azure Web App - jogeumarket
+name: Deploy API to Azure App Service
 
 on:
   push:
-    branches:
-      - main
-  workflow_dispatch:
+    branches: [main]
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read #This is required for actions/checkout
 
     steps:
+      # 1. 코드 체크아웃
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js version
-        uses: actions/setup-node@v3
+      # 2. Node.js 설치 (LTS 안정 버전 권장)
+      - uses: actions/setup-node@v4
         with:
-          node-version: '22.x'
+          node-version: "20.x" # 22.x 대신 20.x 안정 버전
+          cache: "npm"
 
-      - name: npm install, build, and test
-        run: |
-          npm install
-          npm run build --if-present
-          npm run test --if-present
+      # 3. 패키지 설치
+      - run: npm ci
 
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v4
-        with:
-          name: node-app
-          path: .
+      # 4. Prisma Client 생성
+      - run: npx prisma generate
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      # 5. 빌드 (dist 생성)
+      - run: npm run build
 
-    steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v4
-        with:
-          name: node-app
-      
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_329F5CADDCD14B32BC5474C08CE21B59 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_E9651F3608BF4F14AE7FFE50585AF6ED }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_83293FE8940240DA9F35783AD327637A }}
+      # 6. devDependencies 제거 (런타임에 필요없는 타입 패키지 등)
+      - run: npm prune --omit=dev
 
-      - name: 'Deploy to Azure Web App'
-        id: deploy-to-webapp
+      # 7. 배포 ZIP 생성
+      - run: |
+          zip -r app.zip dist node_modules prisma public package.json package-lock.json tsconfig.json
+      # 8. Azure 배포
+      - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'jogeumarket'
-          slot-name: 'Production'
-          package: .
+          app-name: jogeumarket
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: app.zip
           
