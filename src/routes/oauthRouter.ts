@@ -1,7 +1,7 @@
 import express from "express";
 import axios from "axios";
-import jwt from "jsonwebtoken";
 import prisma from "../lib/prisma";
+import { generateAccessToken, generateRefreshToken } from "../utils/token";
 
 const router = express.Router();
 
@@ -51,14 +51,21 @@ router.post("/auth/kakao", async (req, res) => {
       });
     }
 
-    // 4. JWT 발급
-    const token = jwt.sign(
-      { id: user.id, provider: user.provider },
-      process.env.JWT_SECRET!,
-      { expiresIn: "7d" }
-    );
+    const accessToken = generateAccessToken({
+      ...user,
+      email: user.email || "",
+    });
+    const refreshToken = generateRefreshToken(user);
 
-    res.json({ token, user });
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", //개발중일때는 false
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: "/",
+    });
+
+    res.json({ accessToken, user });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "카카오 로그인 실패" });
