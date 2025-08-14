@@ -1,17 +1,15 @@
-import express, { Request, Response } from "express";
+import express from "express";
 import prisma from "./lib/prisma";
 import productReviewRouter from "./routes/productReviewRouter";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger";
-
 import "dotenv/config";
 import authRouter from "./routes/authRouter";
 import userRouter from "./routes/userRouter";
 import brandRouter from "./routes/brandRouter";
 import cartRouter from "./routes/cartRouter";
 import orderRouter from "./routes/orderRouter";
-
 import wishlistRouter from "./routes/wishlistRouter";
 import sampleRouter from "./routes/sampleRouter";
 import couponRouter from "./routes/couponRouter";
@@ -29,7 +27,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-const allowerdOrigin = process.env.CLIENT_ORIGIN?.split(',')
+const allowerdOrigin = process.env.CLIENT_ORIGIN?.split(",");
 app.use(cors({ origin: allowerdOrigin, credentials: true }));
 // 정적 파일 서빙 (시드 이미지: /B_no_bg, /F_no_bg, /L_no_bg, /P_no_bg 경로)
 app.use(express.static("public"));
