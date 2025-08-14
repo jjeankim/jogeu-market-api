@@ -39,5 +39,5 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: jogeumarket
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_32BE587D37404CD98115FE81A2916EC9 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
           package: app.zip
