@@ -44,8 +44,8 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                     code: "FirstSignUp",
                     isActive: true,
                     validUntil: {
-                        gte: new Date()
-                    }
+                        gte: new Date(),
+                    },
                 },
             });
             if (welcomeCoupon) {
@@ -54,18 +54,21 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                         userId: newUser.id,
                         couponId: welcomeCoupon.id,
                         isUsed: false,
-                    }
+                    },
                 });
             }
             return {
-                newUser, welcomeCouponIssued: !!welcomeCoupon
+                newUser,
+                welcomeCouponIssued: !!welcomeCoupon,
             };
         }));
         return res
             .status(201)
-            .json({ message: successMessage_1.AUTH_SUCCESS.SIGNUP,
+            .json({
+            message: successMessage_1.AUTH_SUCCESS.SIGNUP,
             userId: result.newUser.id,
-            welcomeCouponIssued: result.welcomeCouponIssued });
+            welcomeCouponIssued: result.welcomeCouponIssued,
+        });
     }
     catch (error) {
         console.error(error);
@@ -82,6 +85,10 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 message: errorMessage_1.AUTH_ERROR.INVALID_CREDENTIALS,
             });
         }
+        //소셜 로그인 사용자의 경우 password가 null일 수 있음
+        if (!user.password) {
+            return res.status(401).json({ message: errorMessage_1.AUTH_ERROR.INVALID_CREDENTIALS });
+        }
         const isValid = yield bcryptjs_1.default.compare(password, user.password);
         if (!isValid) {
             return res.status(401).json({ message: errorMessage_1.AUTH_ERROR.INVALID_CREDENTIALS });
@@ -93,15 +100,15 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             secure: process.env.NODE_ENV === "production", //개발중일때는 false
             sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
             maxAge: 7 * 24 * 60 * 60 * 1000,
-            path: "/"
+            path: "/",
         });
         return res.json({
             accessToken,
             user: {
                 id: user.id,
                 email: user.email,
-                name: user.name
-            }
+                name: user.name,
+            },
         });
     }
     catch (error) {

@@ -14,6 +14,115 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const prisma_1 = __importDefault(require("./prisma"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
+const storage_blob_1 = require("@azure/storage-blob");
+const fs_1 = __importDefault(require("fs"));
+const path_1 = __importDefault(require("path"));
+const env_1 = require("../config/env");
+// 브랜드 로고 업로드 함수
+function uploadBrandLogos() {
+    return __awaiter(this, void 0, void 0, function* () {
+        console.log("🖼️ 브랜드 로고 업로드 시작...");
+        if (!env_1.AZURE_STORAGE_ACCOUNT || !env_1.AZURE_STORAGE_ACCOUNT_KEY || !env_1.AZURE_STORAGE_CONTAINER) {
+            throw new Error("Azure Storage 환경 변수가 설정되지 않았습니다.");
+        }
+        // Azure Storage 인증 정보 설정
+        const sharedKeyCredential = new storage_blob_1.StorageSharedKeyCredential(env_1.AZURE_STORAGE_ACCOUNT, env_1.AZURE_STORAGE_ACCOUNT_KEY);
+        // Azure Blob Storage 클라이언트 설정
+        const blobServiceClient = new storage_blob_1.BlobServiceClient(`https://${env_1.AZURE_STORAGE_ACCOUNT}.blob.core.windows.net`, sharedKeyCredential);
+        const containerClient = blobServiceClient.getContainerClient(env_1.AZURE_STORAGE_CONTAINER);
+        // 브랜드 이름과 파일명 매핑
+        const brandLogoMapping = {
+            "에버블룸": "애버블룸.png",
+            "블루허브": "블루허브.png",
+            "루나화이트": "루나화이트.png",
+            "네이처소울": "네이처소울.png",
+            "그린필드": "그린필드.png",
+            "퓨어딥": "퓨어딥.png",
+            "아쿠아하이드": "아쿠아하이드.png",
+            "로지스킨": "로지스킨.png",
+            "피토베라": "피토베리.png",
+            "오가닉테라": "오가닉테라.png",
+            "헬시밀": "헬씨밀.png",
+            "네이처푸드": "네이처푸드.png",
+            "바이탈웰": "바이탈웰.png",
+            "오가닉키친": "오가닉키친.png",
+            "퓨어라이프": "퓨어라이프.png",
+            "홈스위트": "홈스위트.png",
+            "리빙프로": "리빙프로.png",
+            "데일리라이프": "데일리라이프.png",
+            "펫프렌즈": "펫프렌즈.png",
+            "해피펫": "해피펫.png",
+            "펫케어": "펫케어.png",
+        };
+        try {
+            // 데이터베이스에서 모든 브랜드 조회
+            const brands = yield prisma_1.default.brand.findMany({
+                select: { id: true, name: true, logoImageUrl: true }
+            });
+            console.log(`📋 총 ${brands.length}개의 브랜드 로고 업로드 중...`);
+            const logosDir = path_1.default.join(process.cwd(), "public", "로고");
+            for (const brand of brands) {
+                const logoFileName = brandLogoMapping[brand.name];
+                if (!logoFileName) {
+                    console.log(`⚠️  ${brand.name} 브랜드의 로고 파일을 찾을 수 없습니다.`);
+                    continue;
+                }
+                const logoPath = path_1.default.join(logosDir, logoFileName);
+                if (!fs_1.default.existsSync(logoPath)) {
+                    console.log(`❌ ${logoPath} 파일이 존재하지 않습니다.`);
+                    continue;
+                }
+                try {
+                    // Azure Blob Storage에 업로드
+                    const blobName = `brands/logos/${Date.now()}-${Math.random().toString(36).substring(2)}-${logoFileName}`;
+                    const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+                    console.log(`📤 ${brand.name} 로고 업로드 중... (${logoFileName})`);
+                    yield blockBlobClient.uploadFile(logoPath, {
+                        blobHTTPHeaders: {
+                            blobContentType: "image/png",
+                        },
+                    });
+                    const logoUrl = blockBlobClient.url;
+                    console.log(`✅ 업로드 완료: ${logoUrl}`);
+                    // 데이터베이스 업데이트
+                    yield prisma_1.default.brand.update({
+                        where: { id: brand.id },
+                        data: { logoImageUrl: logoUrl },
+                    });
+                    console.log(`🔄 ${brand.name} 브랜드 DB 업데이트 완료`);
+                }
+                catch (uploadError) {
+                    console.error(`❌ ${brand.name} 업로드 실패:`, uploadError);
+                }
+            }
+            console.log("🎉 브랜드 로고 업로드 완료!");
+        }
+        catch (error) {
+            console.error("💥 브랜드 로고 업로드 오류:", error);
+        }
+    });
+}
+// 제품명에서 용량 정보 제거 함수
+function removeVolumeFromName(name) {
+    return name
+        .replace(/\s*\d+(?:\.\d+)?\s*(ml|g|L|kg|개입|매|캡슐)\s*/g, '') // 용량 단위 제거
+        .replace(/\s*\d+(?:\.\d+)?\s*(개|개입)\s*/g, '') // 개수 정보 제거
+        .replace(/\s+/g, ' ') // 연속된 공백을 하나로
+        .trim(); // 양쪽 공백 제거
+}
+// 가격을 10,000원 이하로 조정하는 함수
+function adjustPrice(originalPrice) {
+    if (originalPrice <= 10000)
+        return originalPrice;
+    // 10,000원을 초과하는 경우 적절히 조정
+    if (originalPrice <= 20000)
+        return Math.floor(originalPrice * 0.5); // 50% 할인
+    if (originalPrice <= 30000)
+        return Math.floor(originalPrice * 0.35); // 65% 할인  
+    if (originalPrice <= 50000)
+        return Math.floor(originalPrice * 0.25); // 75% 할인
+    return Math.floor(originalPrice * 0.2); // 80% 할인
+}
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         console.log("🌱 시딩 시작...");
@@ -116,15 +225,17 @@ function main() {
                 { name: "펫케어" },
             ],
         });
+        // 브랜드 로고 업로드 
+        yield uploadBrandLogos();
         // 카테고리 및 브랜드 ID 가져오기
         const categories = yield prisma_1.default.category.findMany({
             select: { id: true, slug: true }
         });
-        const categoryMap = new Map(categories.map(cat => [cat.slug, cat.id]));
+        const categoryMap = new Map(categories.map((cat) => [cat.slug, cat.id]));
         const brands = yield prisma_1.default.brand.findMany({
             select: { id: true, name: true }
         });
-        const brandMap = new Map(brands.map(brand => [brand.name, brand.id]));
+        const brandMap = new Map(brands.map((brand) => [brand.name, brand.id]));
         // 상품 데이터: 폴더 내 이미지 파일명과 코드 규칙에 맞춰 생성
         console.log("📦 상품 생성 중...");
         const AZURE_ACCOUNT = process.env.AZURE_STORAGE_ACCOUNT;
@@ -1383,26 +1494,29 @@ function main() {
         const SAMPLE_LABEL_IN_NAME = false; // true로 바꾸면 제품명 앞에 "샘플 " 프리픽스 부여
         const SAMPLE_NAME_PREFIX = "샘플 ";
         const productsToCreate = products.map((p) => {
-            var _a, _b, _c, _d;
-            return ({
+            var _a, _b, _c;
+            const cleanName = removeVolumeFromName(p.name);
+            const adjustedPrice = adjustPrice(p.price);
+            const adjustedSamplePrice = p.samplePrice ? Math.min(p.samplePrice, Math.floor(adjustedPrice * 0.3)) : Math.max(200, Math.round(adjustedPrice * 0.03));
+            return {
                 name: (SAMPLE_LABEL_IN_NAME || p.isSample) && FORCE_ALL_SAMPLE
-                    ? `${SAMPLE_NAME_PREFIX}${p.name}`
+                    ? `${SAMPLE_NAME_PREFIX}${cleanName}`
                     : SAMPLE_LABEL_IN_NAME && p.isSample
-                        ? `${SAMPLE_NAME_PREFIX}${p.name}`
-                        : p.name,
+                        ? `${SAMPLE_NAME_PREFIX}${cleanName}`
+                        : cleanName,
                 productCode: nextCode(p.codePrefix),
                 brandId: brandMap.get(p.brandName),
-                price: p.price,
+                price: adjustedPrice,
                 stockQuantity: (_a = p.stockQuantity) !== null && _a !== void 0 ? _a : 100,
                 thumbnailImageUrl: toBlobUrl(p.folder, p.file),
                 detailDescription: (_b = p.detailDescription) !== null && _b !== void 0 ? _b : "",
                 isSample: FORCE_ALL_SAMPLE ? true : p.isSample,
                 samplePrice: FORCE_ALL_SAMPLE || p.isSample
-                    ? (_c = p.samplePrice) !== null && _c !== void 0 ? _c : Math.max(200, Math.round(p.price * 0.03))
-                    : p.samplePrice,
+                    ? adjustedSamplePrice
+                    : adjustedSamplePrice,
                 categoryId: categoryMap.get(p.categorySlug),
-                isPick: (_d = p.isPick) !== null && _d !== void 0 ? _d : false,
-            });
+                isPick: (_c = p.isPick) !== null && _c !== void 0 ? _c : false,
+            };
         });
         yield prisma_1.default.product.createMany({ data: productsToCreate });
         // 쿠폰 5개 생성

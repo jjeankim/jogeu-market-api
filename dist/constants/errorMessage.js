@@ -31,6 +31,7 @@ exports.USER_ERROR = {
     PASSWORD_REQUIRED: "현재 비밀번호와 새 비밀번호를 모두 입력해야 합니다.",
     PASSWORD_INCORRECT: "현재 비밀번호가 일치하지 않습니다.",
     SAME_AS_OLD_PASSWORD: "기존 비밀번호와 동일합니다.",
+    NO_PASSWORD_SET: "소셜 로그인 계정은 비밀번호가 설정되어 있지 않습니다."
 };
 exports.BRAND_ERROR = {
     VALIDATION: "브랜드 이름은 필수 입력 항목입니다.",
