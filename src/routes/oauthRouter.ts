@@ -2,10 +2,12 @@ import express from "express";
 import axios from "axios";
 import prisma from "../lib/prisma";
 import { generateAccessToken, generateRefreshToken } from "../utils/token";
+import { JwtPayLoad } from "../types/userType";
 
-const router = express.Router();
+const oauthRouter = express.Router();
 
-router.post("/auth/kakao", async (req, res) => {
+// 카카오 로그인
+oauthRouter.post("/kakao", async (req, res) => {
   const { code } = req.body; // 프론트에서 authorization_code 받음
 
   try {
@@ -30,7 +32,7 @@ router.post("/auth/kakao", async (req, res) => {
 
     const kakaoUser = userRes.data;
     const kakaoId = String(kakaoUser.id);
-    const email = kakaoUser.kakao_account?.email || null;
+    const email = kakaoUser.kakao_account?.email ?? null;
     const name = kakaoUser.kakao_account?.profile?.nickname || "카카오유저";
 
     // 3. DB 유저 조회 or 생성
@@ -51,12 +53,24 @@ router.post("/auth/kakao", async (req, res) => {
       });
     }
 
-    const accessToken = generateAccessToken({
-      ...user,
-      email: user.email || "",
-    });
-    const refreshToken = generateRefreshToken(user);
+    // 4. JWT Payload 매핑
+    const payload: JwtPayLoad = {
+      id: user.id,
+      name: user.name,
+      provider: user.provider ?? "kakao",
+      providerId: user.providerId ?? kakaoId,
+      ...(user.email ? { email: user.email } : {}),
+    };
 
+    // 5. 토큰 발급
+    const accessToken = generateAccessToken(payload);
+    const refreshToken = generateRefreshToken({
+      id: payload.id,
+      provider: payload.provider,
+      providerId: payload.providerId,
+    });
+
+    // 6. refreshToken 쿠키 저장
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -72,4 +86,86 @@ router.post("/auth/kakao", async (req, res) => {
   }
 });
 
-export default router;
+
+// 네이버 로그인
+oauthRouter.post("/naver", async (req, res) => {
+  const { code, state } = req.body;
+
+  try {
+    // 1. 네이버 토큰 요청
+    const tokenRes = await axios.post(
+      "https://nid.naver.com/oauth2.0/token",
+      null,
+      {
+        params: {
+          grant_type: "authorization_code",
+          client_id: process.env.NAVER_CLIENT_ID!,
+          client_secret: process.env.NAVER_CLIENT_SECRET!,
+          code,
+          state,
+        },
+      }
+    );
+
+    const { access_token } = tokenRes.data;
+
+    // 2. 사용자 정보 요청
+    const userRes = await axios.get("https://openapi.naver.com/v1/nid/me", {
+      headers: { Authorization: `Bearer ${access_token}` },
+    });
+
+    const naverUser = userRes.data.response;
+    const naverId = String(naverUser.id);
+    const email = naverUser.email ?? null;
+    const name = naverUser.nickname ?? "네이버유저";
+
+    // 3. DB 유저 조회 or 생성
+    let user = await prisma.user.findUnique({
+      where: { provider_providerId: { provider: "naver", providerId: naverId } },
+    });
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          email,
+          name,
+          provider: "naver",
+          providerId: naverId,
+        },
+      });
+    }
+
+    // 4. JWT Payload 매핑
+    const payload: JwtPayLoad = {
+      id: user.id,
+      name: user.name,
+      provider: user.provider ?? "naver",
+      providerId: user.providerId ?? naverId,
+      ...(user.email ? { email: user.email } : {}),
+    };
+
+    // 5. 토큰 발급
+    const accessToken = generateAccessToken(payload);
+    const refreshToken = generateRefreshToken({
+      id: payload.id,
+      provider: payload.provider,
+      providerId: payload.providerId,
+    });
+
+    // 6. refreshToken 쿠키 저장
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: "/",
+    });
+
+    res.json({ accessToken, user });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "네이버 로그인 실패" });
+  }
+});
+
+export default oauthRouter;

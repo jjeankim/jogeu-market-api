@@ -19,6 +19,7 @@ import categoryRouter from "./routes/categoryRouter";
 import { errorHandler } from "./middleware/errorHandler";
 import helmet from "helmet";
 import compression from "compression";
+import oauthRouter from "./routes/oauthRouter";
 
 const app = express();
 app.use(compression());
@@ -45,6 +46,7 @@ app.use("/api/coupon", couponRouter);
 app.use("/api/orders", orderRouter);
 app.use("/api/samples", sampleRouter);
 app.use("/api/categories", categoryRouter);
+app.use("/api/auth",oauthRouter);
 
 // 404 핸들러
 app.use((req, res) => {
