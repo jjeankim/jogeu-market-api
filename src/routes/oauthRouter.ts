@@ -2,10 +2,11 @@ import express from "express";
 import axios from "axios";
 import prisma from "../lib/prisma";
 import { generateAccessToken, generateRefreshToken } from "../utils/token";
+import { JwtPayLoad } from "../types/userType";
 
-const router = express.Router();
+const oauthRouter = express.Router();
 
-router.post("/auth/kakao", async (req, res) => {
+oauthRouter.post("/kakao", async (req, res) => {
   const { code } = req.body; // 프론트에서 authorization_code 받음
 
   try {
@@ -30,7 +31,7 @@ router.post("/auth/kakao", async (req, res) => {
 
     const kakaoUser = userRes.data;
     const kakaoId = String(kakaoUser.id);
-    const email = kakaoUser.kakao_account?.email || null;
+    const email = kakaoUser.kakao_account?.email ?? null;
     const name = kakaoUser.kakao_account?.profile?.nickname || "카카오유저";
 
     // 3. DB 유저 조회 or 생성
@@ -51,12 +52,24 @@ router.post("/auth/kakao", async (req, res) => {
       });
     }
 
-    const accessToken = generateAccessToken({
-      ...user,
-      email: user.email || "",
-    });
-    const refreshToken = generateRefreshToken(user);
+    // 4. JWT Payload 매핑
+    const payload: JwtPayLoad = {
+      id: user.id,
+      name: user.name,
+      provider: user.provider ?? "kakao",
+      providerId: user.providerId ?? kakaoId,
+      ...(user.email ? { email: user.email } : {}),
+    };
 
+    // 5. 토큰 발급
+    const accessToken = generateAccessToken(payload);
+    const refreshToken = generateRefreshToken({
+      id: payload.id,
+      provider: payload.provider,
+      providerId: payload.providerId,
+    });
+
+     // 6. refreshToken 쿠키 저장
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -72,4 +85,4 @@ router.post("/auth/kakao", async (req, res) => {
   }
 });
 
-export default router;
+export default oauthRouter;
