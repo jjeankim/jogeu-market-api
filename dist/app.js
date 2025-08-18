@@ -34,13 +34,14 @@ const categoryRouter_1 = __importDefault(require("./routes/categoryRouter"));
 const errorHandler_1 = require("./middleware/errorHandler");
 const helmet_1 = __importDefault(require("helmet"));
 const compression_1 = __importDefault(require("compression"));
+const oauthRouter_1 = __importDefault(require("./routes/oauthRouter"));
 const app = (0, express_1.default)();
 app.use((0, compression_1.default)());
 app.use((0, helmet_1.default)());
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use((0, cookie_parser_1.default)());
-const allowerdOrigin = (_a = process.env.CLIENT_ORIGIN) === null || _a === void 0 ? void 0 : _a.split(',');
+const allowerdOrigin = (_a = process.env.CLIENT_ORIGIN) === null || _a === void 0 ? void 0 : _a.split(",");
 app.use((0, cors_1.default)({ origin: allowerdOrigin, credentials: true }));
 // 정적 파일 서빙 (시드 이미지: /B_no_bg, /F_no_bg, /L_no_bg, /P_no_bg 경로)
 app.use(express_1.default.static("public"));
@@ -56,6 +57,7 @@ app.use("/api/coupon", couponRouter_1.default);
 app.use("/api/orders", orderRouter_1.default);
 app.use("/api/samples", sampleRouter_1.default);
 app.use("/api/categories", categoryRouter_1.default);
+app.use("/api/auth", oauthRouter_1.default);
 // 404 핸들러
 app.use((req, res) => {
     res.status(404).json({ message: "Not Found" });

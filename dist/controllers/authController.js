@@ -62,9 +62,7 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 welcomeCouponIssued: !!welcomeCoupon,
             };
         }));
-        return res
-            .status(201)
-            .json({
+        return res.status(201).json({
             message: successMessage_1.AUTH_SUCCESS.SIGNUP,
             userId: result.newUser.id,
             welcomeCouponIssued: result.welcomeCouponIssued,
@@ -77,6 +75,7 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.signup = signup;
 const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     try {
         const { email, password } = authSchema_1.loginSchema.parse(req.body);
         const user = yield prisma_1.default.user.findUnique({ where: { email } });
@@ -93,8 +92,14 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         if (!isValid) {
             return res.status(401).json({ message: errorMessage_1.AUTH_ERROR.INVALID_CREDENTIALS });
         }
-        const accessToken = (0, token_1.generateAccessToken)(user);
-        const refreshToken = (0, token_1.generateRefreshToken)(user);
+        // 🔑 JwtPayload 매핑
+        const payload = Object.assign({ id: user.id, name: user.name, provider: (_a = user.provider) !== null && _a !== void 0 ? _a : "local", providerId: (_b = user.providerId) !== null && _b !== void 0 ? _b : user.id.toString() }, (user.email ? { email: user.email } : {}));
+        const accessToken = (0, token_1.generateAccessToken)(payload);
+        const refreshToken = (0, token_1.generateRefreshToken)({
+            id: payload.id,
+            provider: payload.provider,
+            providerId: payload.providerId,
+        });
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production", //개발중일때는 false
@@ -118,6 +123,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.login = login;
 const refreshToken = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const token = req.cookies.refreshToken;
     if (!token) {
         return res.status(204).send(); //로그인 안한 상태임
@@ -130,7 +136,9 @@ const refreshToken = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         if (!user) {
             return res.status(401).json({ message: errorMessage_1.COMMON_ERROR.UNAUTHORIZED });
         }
-        const accessToken = (0, token_1.generateAccessToken)(user);
+        // JwtPayload 재구성
+        const payload = Object.assign({ id: user.id, name: (_a = user.name) !== null && _a !== void 0 ? _a : undefined, provider: decoded.provider, providerId: decoded.providerId }, (user.email ? { email: user.email } : {}));
+        const accessToken = (0, token_1.generateAccessToken)(payload);
         res.json({ accessToken });
     }
     catch (error) {

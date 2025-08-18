@@ -65,7 +65,7 @@ const getProductReviews = (req, res) => __awaiter(void 0, void 0, void 0, functi
 exports.getProductReviews = getProductReviews;
 //상품 리뷰 작성하기
 const createProductReview = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _a;
     const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
     if (!userId) {
         return res.status(401).json({ message: errorMessage_1.COMMON_ERROR.UNAUTHORIZED });
@@ -74,7 +74,11 @@ const createProductReview = (req, res) => __awaiter(void 0, void 0, void 0, func
     const { rating, reviewText, orderItemId } = req.body;
     //Azure 업로드 결과 사용
     const f = req.file;
-    const imageUrl = (_b = f === null || f === void 0 ? void 0 : f.url) !== null && _b !== void 0 ? _b : null;
+    // const imageUrl = f?.url ?? null;
+    // ✅ SAS 포함된 url 대신 blobName으로 퍼블릭 URL 생성
+    const imageUrl = (f === null || f === void 0 ? void 0 : f.blobName)
+        ? `https://${process.env.AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${process.env.AZURE_STORAGE_CONTAINER}/${f.blobName}`
+        : null;
     try {
         const review = yield prisma_1.default.review.create({
             data: {
