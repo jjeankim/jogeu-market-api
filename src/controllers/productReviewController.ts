@@ -72,7 +72,11 @@ export const createProductReview = async (req: UserRequest, res: Response) => {
     container?: string;
   };
 
-  const imageUrl = f?.url ?? null;
+  // const imageUrl = f?.url ?? null;
+  // ✅ SAS 포함된 url 대신 blobName으로 퍼블릭 URL 생성
+  const imageUrl = f?.blobName
+    ? `https://${process.env.AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${process.env.AZURE_STORAGE_CONTAINER}/${f.blobName}`
+    : null;
 
   try {
     const review = await prisma.review.create({
