@@ -9,26 +9,26 @@ const swaggerOptions = {
       description: "조그마켓 API 문서",
       contact: {
         name: "API Support",
-        email: "support@jogeu-market.com"
-      }
+        email: "support@jogeu-market.com",
+      },
     },
     servers: [
       {
-        url: "http://localhost:4000",
-        description: "개발 서버"
-      }
+        url: "https://jogeumarket.azurewebsites.net",
+        description: "개발 서버",
+      },
     ],
     components: {
       securitySchemes: {
         bearerAuth: {
           type: "http",
           scheme: "bearer",
-          bearerFormat: "JWT"
-        }
-      }
-    }
+          bearerFormat: "JWT",
+        },
+      },
+    },
   },
-  apis: ["./src/routes/*.ts", "./src/controllers/*.ts", "./src/docs/*.ts"]
+  apis: ["./src/routes/*.ts", "./src/controllers/*.ts", "./src/docs/*.ts"],
 };
 
-export const swaggerSpec = swaggerJsdoc(swaggerOptions); 
+export const swaggerSpec = swaggerJsdoc(swaggerOptions);
