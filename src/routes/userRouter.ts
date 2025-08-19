@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getMe, updatePassword } from "../controllers/userController";
+import { getMe, updatePassword, updateUserInfo } from "../controllers/userController";
 import { authenticateJWT } from "../middleware/auth";
 import {
   createAddressSchema,
@@ -16,6 +16,9 @@ import {
 const userRouter = Router();
 
 userRouter.get("/me", authenticateJWT, getMe);
+
+// 사용자 정보 업데이트
+userRouter.patch("/me", authenticateJWT, updateUserInfo);
 
 // 비밀번호 변경
 userRouter.patch("/me/password", authenticateJWT, updatePassword);

@@ -37,6 +37,41 @@ export const getMe: RequestHandler = async (
   res.status(200).json(user);
 };
 
+// 사용자 정보 업데이트
+export const updateUserInfo = async (req: UserRequest, res: Response) => {
+  const userId = req.user?.id;
+  if (!userId) {
+    return res.status(401).json({ message: COMMON_ERROR.UNAUTHORIZED });
+  }
+
+  const { name, phoneNumber, email } = req.body;
+
+  try {
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(name && { name }),
+        ...(phoneNumber && { phoneNumber }),
+        ...(email && { email }),
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phoneNumber: true,
+      },
+    });
+
+    return res.status(200).json({ 
+      message: USER_SUCCESS.USER_UPDATED, 
+      data: updatedUser 
+    });
+  } catch (error) {
+    console.error("사용자 정보 업데이트 중 에러:", error);
+    return res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
+  }
+};
+
 // 비밀번호 변경 (사용자 본인의 속성 변경)
 export const updatePassword = async (req: UserRequest, res: Response) => {
   const userId = req.user?.id;
