@@ -1,11 +1,11 @@
-import { User } from "../types/userType";
+import { JwtPayLoad } from "../types/userType";
 import jwt from "jsonwebtoken";
 
-const generateToken = (user: User) => {
+export const generateAccessToken = (payload: JwtPayLoad) => {
   const accessToken = jwt.sign(
     {
-      id: user.id,
-      email: user.email,
+      id: payload.id,
+      email: payload.email,
     },
     process.env.JWT_SECRET as string,
     {
@@ -13,16 +13,19 @@ const generateToken = (user: User) => {
     }
   );
 
+  return accessToken;
+};
+
+export const generateRefreshToken = (payload: JwtPayLoad) => {
   const refreshToken = jwt.sign(
     {
-      id: user.id,
+      id: payload.id,
     },
     process.env.JWT_SECRET as string,
     {
       expiresIn: "7d",
     }
   );
-  return { accessToken, refreshToken };
-};
 
-export default generateToken;
+  return refreshToken;
+};

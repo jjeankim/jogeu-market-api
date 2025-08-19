@@ -57,7 +57,6 @@ export const getProductReviews: RequestHandler = async (req, res) => {
 
 //상품 리뷰 작성하기
 export const createProductReview = async (req: UserRequest, res: Response) => {
-  
   const userId = req.user?.id;
   if (!userId) {
     return res.status(401).json({ message: COMMON_ERROR.UNAUTHORIZED });
@@ -72,9 +71,13 @@ export const createProductReview = async (req: UserRequest, res: Response) => {
     blobName?: string;
     container?: string;
   };
-  
-  const imageUrl = f?.url ?? null;
- 
+
+  // const imageUrl = f?.url ?? null;
+  // ✅ SAS 포함된 url 대신 blobName으로 퍼블릭 URL 생성
+  const imageUrl = f?.blobName
+    ? `https://${process.env.AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${process.env.AZURE_STORAGE_CONTAINER}/${f.blobName}`
+    : null;
+
   try {
     const review = await prisma.review.create({
       data: {
@@ -97,7 +100,6 @@ export const createProductReview = async (req: UserRequest, res: Response) => {
 
 // 상품 리뷰 수정하기
 export const updateProductReview = async (req: UserRequest, res: Response) => {
-
   const userId = req.user?.id;
   if (!userId) {
     return res.status(401).json({ message: COMMON_ERROR.UNAUTHORIZED });
@@ -307,5 +309,34 @@ export const createReviewTag = async (req: UserRequest, res: Response) => {
     }
     console.error("상품 태그 추가 중 에러 발생: ", error);
     res.status(500).json({ message: COMMON_ERROR.SERVER_ERROR });
+  }
+};
+
+// 상품 리뷰 통계
+export const getProductReviewStats: RequestHandler = async (req, res) => {
+  const productId = Number(req.params.id);
+  try {
+    const reviews = await prisma.review.findMany({
+      where: { productId },
+      select: { rating: true },
+    });
+
+    const total = reviews.length;
+    const average =
+      total > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / total : 0;
+
+    // 1~5점대 분포 (소수점 버림 처리)
+    const distribution = [1, 2, 3, 4, 5].map((star) => ({
+      star,
+      count: reviews.filter((r) => Math.floor(r.rating) === star).length,
+    }));
+
+    res.json({
+      total,
+      average: Number(average.toFixed(1)),
+      distribution,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "리뷰 통계 조회 실패" });
   }
 };

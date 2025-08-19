@@ -1,12 +1,13 @@
 import { Request, RequestHandler, Response } from "express";
 import prisma from "../lib/prisma";
 import bcrypt from "bcryptjs";
-import generateToken from "../utils/token";
+import { generateAccessToken, generateRefreshToken } from "../utils/token";
 import { loginSchema, signupSchema } from "../validator/authSchema";
 import { AUTH_ERROR, COMMON_ERROR } from "../constants/errorMessage";
 import { AUTH_SUCCESS } from "../constants/successMessage";
 import { UserRequest } from "../types/expressUserRequest";
-import jwt from "jsonwebtoken";
+import { JwtPayLoad, RefreshTokenPayload } from "../types/userType";
+
 
 const SALT_ROUNDS = Number(process.env.SALT_ROUNDS || "10");
 
@@ -36,6 +37,7 @@ export const signup: RequestHandler = async (req, res) => {
       const welcomeCoupon = await tx.coupon.findFirst({
         where: {
           code: "WELCOME10",
+
           isActive: true,
           validUntil: {
             gte: new Date(),
@@ -81,18 +83,37 @@ export const login: RequestHandler = async (req, res) => {
       });
     }
 
+    //소셜 로그인 사용자의 경우 password가 null일 수 있음
+    if (!user.password) {
+      return res.status(401).json({ message: AUTH_ERROR.INVALID_CREDENTIALS });
+    }
+
     const isValid = await bcrypt.compare(password, user.password);
 
     if (!isValid) {
       return res.status(401).json({ message: AUTH_ERROR.INVALID_CREDENTIALS });
     }
 
-    const { accessToken, refreshToken } = generateToken(user);
+    // 🔑 JwtPayload 매핑
+    const payload: JwtPayLoad = {
+      id: user.id,
+      name: user.name,
+      provider: user.provider ?? "local", // 자체 로그인은 local
+      providerId: user.providerId ?? user.id.toString(),
+      ...(user.email ? { email: user.email } : {}),
+    };
+
+    const accessToken = generateAccessToken(payload);
+    const refreshToken = generateRefreshToken({
+      id: payload.id,
+      provider: payload.provider,
+      providerId: payload.providerId,
+    });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production", //개발중일때는 false
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: "/",
     });
@@ -118,10 +139,10 @@ export const refreshToken = async (req: UserRequest, res: Response) => {
     return res.status(204).send(); //로그인 안한 상태임
   }
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
-      id: number;
-    };
-
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET as string
+    ) as RefreshTokenPayload;
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
     });
@@ -130,13 +151,17 @@ export const refreshToken = async (req: UserRequest, res: Response) => {
       return res.status(401).json({ message: COMMON_ERROR.UNAUTHORIZED });
     }
 
-    const { accessToken, refreshToken } = generateToken(user);
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    // JwtPayload 재구성
+    const payload: JwtPayLoad = {
+      id: user.id,
+      name: user.name ?? undefined,
+      provider: decoded.provider,
+      providerId: decoded.providerId,
+      ...(user.email ? { email: user.email } : {}),
+    };
+
+    const accessToken = generateAccessToken(payload);
+
     res.json({ accessToken });
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {

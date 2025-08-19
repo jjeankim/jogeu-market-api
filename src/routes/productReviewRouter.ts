@@ -8,6 +8,7 @@ import {
   likeProductReview,
   unlikeProductReview,
   updateProductReview,
+  getProductReviewStats,
 } from "../controllers/productReviewController";
 import { authenticateJWT } from "../middleware/auth";
 import { getSingleUploader } from "../middleware/upload";
@@ -33,5 +34,7 @@ productReviewRouter
   .route("/:reviewId/tags")
   .get(getReviewTags)
   .post(authenticateJWT, createReviewTag);
+
+productReviewRouter.get("/stats", getProductReviewStats);
 
 export default productReviewRouter;
