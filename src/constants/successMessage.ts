@@ -9,6 +9,7 @@ export const AUTH_SUCCESS = {
 
 export const USER_SUCCESS = {
   PASSWORD_UPDATED: "비밀번호가 성공적으로 변경되었습니다.",
+  USER_UPDATED: "사용자 정보가 성공적으로 업데이트되었습니다.",
 };
 
 export const BRAND_SUCCESS = {

@@ -1,6 +1,7 @@
 import { Request, RequestHandler, Response } from "express";
 import prisma from "../lib/prisma";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import { generateAccessToken, generateRefreshToken } from "../utils/token";
 import { loginSchema, signupSchema } from "../validator/authSchema";
 import { AUTH_ERROR, COMMON_ERROR } from "../constants/errorMessage";
@@ -98,8 +99,8 @@ export const login: RequestHandler = async (req, res) => {
     const payload: JwtPayLoad = {
       id: user.id,
       name: user.name,
-      provider: user.provider ?? "local", // 자체 로그인은 local
-      providerId: user.providerId ?? user.id.toString(),
+      provider: "local", // 자체 로그인은 local
+      providerId: user.id.toString(),
       ...(user.email ? { email: user.email } : {}),
     };
 
