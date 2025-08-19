@@ -6,8 +6,8 @@ import { loginSchema, signupSchema } from "../validator/authSchema";
 import { AUTH_ERROR, COMMON_ERROR } from "../constants/errorMessage";
 import { AUTH_SUCCESS } from "../constants/successMessage";
 import { UserRequest } from "../types/expressUserRequest";
-import jwt from "jsonwebtoken";
 import { JwtPayLoad, RefreshTokenPayload } from "../types/userType";
+
 
 const SALT_ROUNDS = Number(process.env.SALT_ROUNDS || "10");
 
@@ -36,7 +36,8 @@ export const signup: RequestHandler = async (req, res) => {
 
       const welcomeCoupon = await tx.coupon.findFirst({
         where: {
-          code: "FirstSignUp",
+          code: "WELCOME10",
+
           isActive: true,
           validUntil: {
             gte: new Date(),
