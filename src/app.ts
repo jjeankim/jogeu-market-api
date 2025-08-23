@@ -52,12 +52,13 @@ app.use(
 );
 
 app.get("/api/csrf-token", (req, res) => {
-  res.cookie("XSRF-TOKEN", (req as any).csrfToken(), {
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    secure: process.env.NODE_ENV === "production",
+  const token = (req as any).csrfToken();
+  res.cookie("XSRF-TOKEN", token, {
+    sameSite: "none",
+    secure: true,
     path: "/",
   });
-  res.json({ ok: true });
+  res.json({ csrfToken: token });
 });
 // 정적 파일 서빙 (시드 이미지: /B_no_bg, /F_no_bg, /L_no_bg, /P_no_bg 경로)
 app.use(express.static("public"));
@@ -76,12 +77,6 @@ app.use("/api/orders", orderRouter);
 app.use("/api/samples", sampleRouter);
 app.use("/api/categories", categoryRouter);
 app.use("/api/auth", oauthRouter);
-
-//test용
-app.use((req, res, next) => {
-  console.log("요청 헤더:", req.method, req.url, req.headers);
-  next();
-});
 
 // 404 핸들러
 app.use((req, res) => {
