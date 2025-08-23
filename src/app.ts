@@ -20,6 +20,7 @@ import { errorHandler } from "./middleware/errorHandler";
 import helmet from "helmet";
 import compression from "compression";
 import oauthRouter from "./routes/oauthRouter";
+import csurf from "csurf";
 
 const app = express();
 app.use(compression());
@@ -29,7 +30,35 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 const allowerdOrigin = process.env.CLIENT_ORIGIN?.split(",");
-app.use(cors({ origin: allowerdOrigin, credentials: true }));
+app.use(
+  cors({
+    origin: allowerdOrigin,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
+  })
+);
+
+app.use(
+  csurf({
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      path: "/",
+    },
+    ignoreMethods: ["GET", "HEAD", "OPTIONS"],
+  })
+);
+
+app.get("/api/csrf-token", (req, res) => {
+  res.cookie("XSRF-TOKEN", (req as any).csrfToken(), {
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+  });
+  res.json({ ok: true });
+});
 // 정적 파일 서빙 (시드 이미지: /B_no_bg, /F_no_bg, /L_no_bg, /P_no_bg 경로)
 app.use(express.static("public"));
 
@@ -46,7 +75,13 @@ app.use("/api/coupon", couponRouter);
 app.use("/api/orders", orderRouter);
 app.use("/api/samples", sampleRouter);
 app.use("/api/categories", categoryRouter);
-app.use("/api/auth",oauthRouter);
+app.use("/api/auth", oauthRouter);
+
+//test용
+app.use((req, res, next) => {
+  console.log("요청 헤더:", req.method, req.url, req.headers);
+  next();
+});
 
 // 404 핸들러
 app.use((req, res) => {
