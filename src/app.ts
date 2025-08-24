@@ -23,6 +23,7 @@ import oauthRouter from "./routes/oauthRouter";
 import csurf from "csurf";
 
 const app = express();
+app.set("trust proxy", 1);
 app.use(compression());
 app.use(helmet());
 app.use(express.json());
@@ -34,7 +35,7 @@ app.use(
   cors({
     origin: allowerdOrigin,
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT","PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
   })
 );
@@ -54,12 +55,14 @@ app.use(
 app.get("/api/csrf-token", (req, res) => {
   const token = (req as any).csrfToken();
   res.cookie("XSRF-TOKEN", token, {
-    sameSite: "none",
-    secure: true,
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    secure: process.env.NODE_ENV === "production",
     path: "/",
+    maxAge: 12 * 60 * 60 * 1000, // 선택: 재호출 줄이기
   });
   res.json({ csrfToken: token });
 });
+
 // 정적 파일 서빙 (시드 이미지: /B_no_bg, /F_no_bg, /L_no_bg, /P_no_bg 경로)
 app.use(express.static("public"));
 
