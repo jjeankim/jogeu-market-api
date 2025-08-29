@@ -40,6 +40,8 @@ app.use(
   })
 );
 
+app.use("/api/auth", oauthRouter);
+
 app.use(
   csurf({
     cookie: {
@@ -79,7 +81,7 @@ app.use("/api/coupon", couponRouter);
 app.use("/api/orders", orderRouter);
 app.use("/api/samples", sampleRouter);
 app.use("/api/categories", categoryRouter);
-app.use("/api/auth", oauthRouter);
+
 
 // 404 핸들러
 app.use((req, res) => {
